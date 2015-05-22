@@ -6,10 +6,10 @@ from smartpy.misc.utils import sharedX
 from . import UpdateRule
 
 
-class LearningRate(UpdateRule):
+class DecreasingLearningRate(UpdateRule):
     def __init__(self, lr, dc=0.):
         """
-        Implements a learning rate update rule.
+        Implements a decreasing learning rate update rule.
 
         Parameters
         ----------
@@ -18,7 +18,7 @@ class LearningRate(UpdateRule):
         dc: float
             decreasing constant (decay)
         """
-        super(LearningRate, self).__init__()
+        super(DecreasingLearningRate, self).__init__()
         assert dc <= 1.
         assert dc >= 0.
         self.lr = lr
@@ -30,7 +30,6 @@ class LearningRate(UpdateRule):
 
         for param, gparam in gradients.items():
             lr = sharedX(self.lr * np.ones_like(param.get_value()), name='lr_' + param.name)
-            self.params[lr.name] = lr
 
             if self.dc != 0.:
                 # Decrease the learning rate by a factor of `dc` after each update.

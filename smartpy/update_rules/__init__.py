@@ -1,2 +1,3 @@
 from .update_rule import UpdateRule
-from .learning_rate import LearningRate
+from .decreasing_learning_rate import DecreasingLearningRate
+from .constant_learning_rate import ConstantLearningRate

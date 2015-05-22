@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
+from __future__ import division, print_function
 
 import numpy as np
 from collections import OrderedDict
@@ -111,27 +111,24 @@ class PrintVariable(RecurrentTask):
         self.variables = [self.track_variable(v) for v in variables]
 
     def execute(self, status):
-        print self.msg.format(*[v.get_value() for v in self.variables])
+        print(self.msg.format(*[v.get_value() for v in self.variables]))
 
 
-class PrintEpochDuration(Task):
-    def __init__(self):
-        super(PrintEpochDuration, self).__init__()
-        # TOFIX: If resuming, self.init is not call and self.training_start_time,
-        # would have been undefined
-        self.training_start_time = time()
+class PrintEpochDuration(RecurrentTask):
+    def __init__(self, **recurrent_options):
+        # TODO: docstring should include **recurrent_options.
+        super(PrintEpochDuration, self).__init__(**recurrent_options)
 
-    def init(self, status):
-        self.training_start_time = time()
+    def execute(self, status):
+        print("Epoch {0} done in {1:.03f} sec.".format(status.current_epoch, time() - self.epoch_start_time))
 
     def pre_epoch(self, status):
         self.epoch_start_time = time()
 
-    def post_epoch(self, status):
-        print "Epoch {0} done in {1:.03f} sec.".format(status.current_epoch, time() - self.epoch_start_time)
 
+class PrintTrainingDuration(Task):
     def finished(self, status):
-        print "Training done in {:.03f} sec.".format(time() - self.training_start_time)
+        print("Training done in {:.03f} sec.".format(status.training_time))
 
 
 class Breakpoint(RecurrentTask):
@@ -148,7 +145,7 @@ class ClassificationError(View):
     def __init__(self, predict_fct, dataset):
         super(ClassificationError, self).__init__()
 
-        batch_size = 1000  # Internal buffer
+        batch_size = 1024  # Internal buffer
         self.nb_batches = int(np.ceil(len(dataset) / batch_size))
 
         input = T.matrix('input')
@@ -193,7 +190,7 @@ class Print(RecurrentTask):
 
     def execute(self, status):
         values = [view.view(status) for view in self.views]
-        print self.msg.format(*values)
+        print(self.msg.format(*values))
 
 
 class MaxEpochStopping(StoppingCriterion):

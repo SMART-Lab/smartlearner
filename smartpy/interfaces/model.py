@@ -15,7 +15,7 @@ class Model(object):
     __metaclass__ = ABCMeta
 
     def get_gradients(self, loss):
-        gparams = T.grad(loss, self.parameters.values())
+        gparams = T.grad(loss, list(self.parameters.values()))
         gradients = dict(zip(self.parameters.values(), gparams))
         return gradients, OrderedDict()
 
