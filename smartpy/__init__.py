@@ -1,5 +1,5 @@
 from .interfaces.model import Model
 from .interfaces.dataset import Dataset
-from .core.trainer import Trainer
+from .trainer import Trainer
 
-import smartpy.core.tasks as tasks
+import tasks.tasks as tasks

@@ -16,7 +16,7 @@ class Trainer(object):
         self._tasks = []
 
     def train(self):
-        learn = self.optimizer._build_learning_function(extra_updates=self._updates)
+        learn = self.optimizer._build_learning_function(task_updates=self._updates)
         #theano.printing.pydotprint(learn, '{0}_learn_{1}'.format(self.optimizer.model.__class__.__name__, theano.config.device), with_ids=True)
 
         # Only initialize tasks if not resuming

@@ -1,7 +1,3 @@
-import theano
-import theano.tensor as T
-from collections import OrderedDict
-
 import numpy as np
 from . import Optimizer
 
@@ -12,40 +8,11 @@ class SGD(Optimizer):
         self.batch_size = batch_size
         self.nb_updates_per_epoch = int(np.ceil(len(dataset) / self.batch_size))
 
-    def _build_learning_function(self, extra_updates={}):
+    def _get_directions(self):
         self.gradients, updates_from_get_gradients = self.model.get_gradients(self.loss)
 
-        # Apply update rules
-        updates_from_update_rules = OrderedDict()
-        for update_rule in self._update_rules:
-            gradients, updates_from_update_rule = update_rule.apply(self.gradients)
-            self.gradients.update(gradients)
-            updates_from_update_rules.update(updates_from_update_rule)
-
-        # Update parameters
-        params_updates = OrderedDict()
+        # Take the opposite of the gradient.
         for param, gparam in self.gradients.items():
-            params_updates[param] = param - self.gradients[param]
+            self.gradients[param] = -gparam
 
-        # Modify parameters, if needed
-        updates_from_param_modifiers = OrderedDict()
-        for param_modifier in self._param_modifiers:
-            modified_params_updates, updates_from_param_modifier = param_modifier.apply(params_updates)
-            params_updates.update(modified_params_updates)
-            updates_from_param_modifiers.update(updates_from_param_modifier)
-
-        # Merge all different updates
-        updates = OrderedDict()
-        updates.update(params_updates)
-        updates.update(updates_from_get_gradients)
-        updates.update(updates_from_update_rules)
-        updates.update(updates_from_param_modifiers)
-        updates.update(extra_updates)
-
-        no_batch = T.iscalar('no_batch')
-        givens = {input: data[no_batch * self.batch_size:(no_batch + 1) * self.batch_size] for input, data in zip(self.inputs, self.data)}
-        learn = theano.function([no_batch],
-                                updates=updates,
-                                givens=givens,
-                                name="learn")
-        return learn
+        return self.gradients, updates_from_get_gradients
