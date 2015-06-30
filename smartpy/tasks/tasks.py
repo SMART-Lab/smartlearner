@@ -153,8 +153,8 @@ class ClassificationError(View):
         classification_errors = T.neq(predict_fct(input), target)
 
         no_batch = T.iscalar('no_batch')
-        givens = {input: dataset.inputs_shared[no_batch * batch_size:(no_batch + 1) * batch_size],
-                  target: dataset.targets_shared[no_batch * batch_size:(no_batch + 1) * batch_size]}
+        givens = {input: dataset.inputs[no_batch * batch_size:(no_batch + 1) * batch_size],
+                  target: dataset.targets[no_batch * batch_size:(no_batch + 1) * batch_size]}
         self.compute_classification_error = theano.function([no_batch],
                                                             classification_errors,
                                                             givens=givens,
