@@ -6,40 +6,38 @@ class Dataset(object):
         self.name = name
         self.inputs = inputs
         self.targets = targets
+        self.symb_inputs = theano.tensor.matrix(name=self.name)
+        self.symb_targets = None if targets is None else theano.tensor.matrix(name=self.name+'_target')
 
     @property
     def inputs(self):
-        return self._inputs
+        return self._inputs_shared
 
     @inputs.setter
     def inputs(self, value):
-        self._inputs = value
-        self._inputs_shared = theano.shared(self.inputs, name=self.name + "_inputs", borrow=True)
+        self._inputs_shared = theano.shared(value, name=self.name + "_inputs", borrow=True)
 
     @property
     def targets(self):
-        return self._targets
+        return self._targets_shared
 
     @targets.setter
     def targets(self, value):
-        self._targets = value
-        self._targets_shared = theano.shared(self.targets, name=self.name + "_targets", borrow=True)
-
-    @property
-    def inputs_shared(self):
-        return self._inputs_shared
-
-    @property
-    def targets_shared(self):
-        return self._targets_shared
+        if value is not None:
+            self._targets_shared = theano.shared(value, name=self.name + "_targets", borrow=True)
+        else:
+            self._targets_shared = None
 
     @property
     def input_size(self):
-        return len(self._inputs[0])
+        return len(self.inputs.get_value()[0])
 
     @property
     def target_size(self):
-        return len(self._targets[0])
+        if self.targets is None:
+            return 0
+        else:
+            return len(self.targets.get_value()[0])
 
     def __len__(self):
-        return len(self._inputs)
+        return len(self.inputs.get_value())

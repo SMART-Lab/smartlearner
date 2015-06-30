@@ -8,17 +8,15 @@ from abc import ABCMeta, abstractmethod
 class Optimizer(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, model, loss_fct, dataset):
-        self.model = model
-        self.loss = loss_fct
-        self.dataset = dataset
+    def __init__(self, loss):
+        self.loss = loss
 
         self._update_rules = []
         self._param_modifiers = []
+        self.batch_size = 10
 
-        self.data = [dataset.inputs_shared, dataset.targets_shared]
-        self.inputs = [T.matrix('input' + str(i)) for i in range(len(self.data))]
-        self.loss = loss_fct(*self.inputs)
+        #self.data = [dataset.inputs_shared, dataset.targets_shared]
+        #self.inputs = [T.matrix('input' + str(i)) for i in range(len(self.data))]
 
     def append_update_rule(self, update_rule):
         self._update_rules.append(update_rule)
@@ -61,7 +59,9 @@ class Optimizer(object):
         updates.update(task_updates)
 
         no_batch = T.iscalar('no_batch')
-        givens = {input: data[no_batch * self.batch_size:(no_batch + 1) * self.batch_size] for input, data in zip(self.inputs, self.data)}
+        givens = {self.loss.dataset.symb_inputs: self.loss.dataset.inputs[no_batch * self.batch_size:(no_batch + 1) * self.batch_size],
+                  self.loss.dataset.symb_targets: self.loss.dataset.targets[no_batch * self.batch_size:(no_batch + 1) * self.batch_size]}
+            #{input: data[no_batch * self.batch_size:(no_batch + 1) * self.batch_size] for input, data in zip(self.inputs, self.data)}
         learn = theano.function([no_batch],
                                 updates=updates,
                                 givens=givens,
