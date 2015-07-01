@@ -6,17 +6,26 @@ from .status import Status
 
 
 class Trainer(object):
-    def __init__(self, optimizer, stopping_criterion,  status=None):
+    def __init__(self, optimizer, batch_scheduler, stopping_criterion, status=None):
         super(Trainer, self).__init__()
         self.status = status if status is not None else Status()
         self.status.trainer = self
-        self.optimizer = optimizer
+        self._optimizer = optimizer
+        self._batch_scheduler = batch_scheduler
         self._updates = OrderedDict()
         self._stopping_criteria = [stopping_criterion]
         self._tasks = []
 
+    def build_theano_graph(self):
+        updates = self._optimizer.gather_updates()
+        updates.update(self._updates)
+        self.learn = theano.function([],
+                       updates=updates,
+                       givens=self._batch_scheduler.givens,
+                       name="learn")
+
     def train(self):
-        learn = self.optimizer._build_learning_function(task_updates=self._updates)
+        self.build_theano_graph()
         #theano.printing.pydotprint(learn, '{0}_learn_{1}'.format(self.optimizer.model.__class__.__name__, theano.config.device), with_ids=True)
 
         # Only initialize tasks if not resuming
@@ -30,11 +39,11 @@ class Trainer(object):
             self._pre_epoch_tasks()
             starttime = time()
 
-            for update_id in range(1, self.optimizer.nb_updates_per_epoch+1):
-                self.status.current_update_in_epoch = update_id
+            for batch_count in self._batch_scheduler:
+                self.status.current_update_in_epoch = batch_count
                 self.status.current_update += 1
                 self._pre_update_tasks()
-                learn(update_id-1)
+                self.learn()
                 self._post_update_tasks()
 
             self.status.training_time += time() - starttime
