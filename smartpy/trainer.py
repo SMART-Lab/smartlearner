@@ -17,7 +17,7 @@ class Trainer(object):
         self._tasks = []
 
     def build_theano_graph(self):
-        updates = self._optimizer._build_learning_function()
+        updates = self._optimizer.gather_updates()
         updates.update(self._updates)
         self.learn = theano.function([],
                        updates=updates,
