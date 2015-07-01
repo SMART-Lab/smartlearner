@@ -13,10 +13,6 @@ class Optimizer(object):
 
         self._update_rules = []
         self._param_modifiers = []
-        self.batch_size = 10
-
-        #self.data = [dataset.inputs_shared, dataset.targets_shared]
-        #self.inputs = [T.matrix('input' + str(i)) for i in range(len(self.data))]
 
     def append_update_rule(self, update_rule):
         self._update_rules.append(update_rule)
@@ -28,7 +24,7 @@ class Optimizer(object):
     def _get_directions(self):
         raise NotImplementedError("Subclass of 'Optimizer' must implement '_get_directions()'.")
 
-    def _build_learning_function(self, task_updates={}):
+    def _build_learning_function(self):
         self.directions, updates_from_get_directions = self._get_directions()
 
         # Apply update rules
@@ -56,15 +52,5 @@ class Optimizer(object):
         updates.update(updates_from_get_directions)
         updates.update(updates_from_update_rules)
         updates.update(updates_from_param_modifiers)
-        updates.update(task_updates)
 
-        no_batch = T.iscalar('no_batch')
-        givens = {self.loss.dataset.symb_inputs: self.loss.dataset.inputs[no_batch * self.batch_size:(no_batch + 1) * self.batch_size],
-                  self.loss.dataset.symb_targets: self.loss.dataset.targets[no_batch * self.batch_size:(no_batch + 1) * self.batch_size]}
-            #{input: data[no_batch * self.batch_size:(no_batch + 1) * self.batch_size] for input, data in zip(self.inputs, self.data)}
-        learn = theano.function([no_batch],
-                                updates=updates,
-                                givens=givens,
-                                name="learn")
-
-        return learn
+        return updates
