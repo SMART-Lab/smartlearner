@@ -18,22 +18,4 @@ class Loss(object):
         return gradients, OrderedDict()
 
     def _loss_function(self, model_output):
-        raise NotImplementedError("The loss function needs to be defined by subclassing the Loss class.")
-
-
-class NegativeLogLikelihood(Loss):
-    def _loss_function(self, model_output):
-        nll = -T.log(model_output)
-        indices = T.cast(self.target[:, 0], dtype="int32")  # Targets are floats.
-        selected_nll = nll[T.arange(self.target.shape[0]), indices]
-        return T.mean(selected_nll)
-
-
-class L2Distance(Loss):
-    def _loss_function(self, model_output):
-        return T.mean((model_output - self.target)**2)
-
-
-class L1Distance(Loss):
-    def _loss_function(self, model_output):
-        return T.mean(abs(model_output - self.target))
+        raise NotImplementedError("Subclass of 'Loss' must implement '_loss_function(model_output)'.")

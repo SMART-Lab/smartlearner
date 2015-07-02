@@ -2,12 +2,12 @@ import theano
 
 
 class Dataset(object):
-    def __init__(self, inputs, targets, name="dataset"):
+    def __init__(self, inputs, targets=None, name="dataset"):
         self.name = name
         self.inputs = inputs
         self.targets = targets
-        self.symb_inputs = theano.tensor.matrix(name=self.name)
-        self.symb_targets = None if targets is None else theano.tensor.matrix(name=self.name+'_target')
+        self.symb_inputs = theano.tensor.matrix(name=self.name+'_inputs')
+        self.symb_targets = theano.tensor.matrix(name=self.name+'_targets')
 
     @property
     def inputs(self):
