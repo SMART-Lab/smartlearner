@@ -8,12 +8,15 @@ class Loss(object):
         self.model = model
         self.dataset = dataset
         self.target = dataset.symb_targets
+        self.consider_constant = []  # Part of the computational graph to be consider as a constant.
 
     def get_graph_output(self):
         return self._loss_function(self.model.get_model_output(self.dataset.symb_inputs))
 
     def get_gradients(self):
-        gparams = T.grad(self.get_graph_output(), self.model.parameters)
+        gparams = T.grad(cost=self.get_graph_output(),
+                         wrt=self.model.parameters,
+                         consider_constant=self.consider_constant)
         gradients = dict(zip(self.model.parameters, gparams))
         return gradients, OrderedDict()
 
