@@ -8,7 +8,7 @@ class Loss(object):
         self.model = model
         self.dataset = dataset
         self.target = dataset.symb_targets
-        self.consider_constant = []  # Part of the computational graph to be consider as a constant.
+        self.consider_constant = []  # Part of the computational graph to be considered as a constant.
 
     def get_graph_output(self):
         return self._loss_function(self.model.get_model_output(self.dataset.symb_inputs))
