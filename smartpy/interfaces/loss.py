@@ -13,8 +13,8 @@ class Loss(object):
         return self._loss_function(self.model.get_model_output(self.dataset.symb_inputs))
 
     def get_gradients(self):
-        gparams = T.grad(self.get_graph_output(), list(self.model.parameters.values()))
-        gradients = dict(zip(self.model.parameters.values(), gparams))
+        gparams = T.grad(self.get_graph_output(), self.model.parameters)
+        gradients = dict(zip(self.model.parameters, gparams))
         return gradients, OrderedDict()
 
     def _loss_function(self, model_output):
