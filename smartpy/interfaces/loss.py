@@ -8,32 +8,17 @@ class Loss(object):
         self.model = model
         self.dataset = dataset
         self.target = dataset.symb_targets
+        self.consider_constant = []  # Part of the computational graph to be considered as a constant.
 
     def get_graph_output(self):
         return self._loss_function(self.model.get_model_output(self.dataset.symb_inputs))
 
     def get_gradients(self):
-        gparams = T.grad(self.get_graph_output(), self.model.parameters)
+        gparams = T.grad(cost=self.get_graph_output(),
+                         wrt=self.model.parameters,
+                         consider_constant=self.consider_constant)
         gradients = dict(zip(self.model.parameters, gparams))
         return gradients, OrderedDict()
 
     def _loss_function(self, model_output):
-        raise NotImplementedError("The loss function needs to be defined by subclassing the Loss class.")
-
-
-class NegativeLogLikelihood(Loss):
-    def _loss_function(self, model_output):
-        nll = -T.log(model_output)
-        indices = T.cast(self.target[:, 0], dtype="int32")  # Targets are floats.
-        selected_nll = nll[T.arange(self.target.shape[0]), indices]
-        return T.mean(selected_nll)
-
-
-class L2Distance(Loss):
-    def _loss_function(self, model_output):
-        return T.mean((model_output - self.target)**2)
-
-
-class L1Distance(Loss):
-    def _loss_function(self, model_output):
-        return T.mean(abs(model_output - self.target))
+        raise NotImplementedError("Subclass of 'Loss' must implement '_loss_function(model_output)'.")
