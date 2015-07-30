@@ -2,7 +2,7 @@ import json
 import theano
 
 
-def sharedX(value, name=None, borrow=False):
+def sharedX(value, name=None, borrow=True):
     """ Transform value into a shared variable of type floatX """
     return theano.shared(theano._asarray(value, dtype=theano.config.floatX),
                          name=name,
