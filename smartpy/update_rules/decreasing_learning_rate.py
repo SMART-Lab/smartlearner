@@ -1,8 +1,8 @@
+from collections import OrderedDict
+
 import numpy as np
 
-from collections import OrderedDict
-from smartpy.misc.utils import sharedX
-
+from smartpy.utils import sharedX
 from . import UpdateRule
 
 
