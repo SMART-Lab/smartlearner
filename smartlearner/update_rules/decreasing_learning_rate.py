@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 import numpy as np
 
-from smartpy.utils import sharedX
+from ..utils import sharedX
 from . import UpdateRule
 
 
