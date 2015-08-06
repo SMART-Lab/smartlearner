@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 from theano import tensor as T
 
 
@@ -11,14 +9,16 @@ class Loss(object):
         self.consider_constant = []  # Part of the computational graph to be considered as a constant.
 
     def get_graph_output(self):
-        return self._loss_function(self.model.get_model_output(self.dataset.symb_inputs))
+        output, updates = self.model.get_model_output(self.dataset.symb_inputs)
+        return self._loss_function(output), updates
 
     def get_gradients(self):
-        gparams = T.grad(cost=self.get_graph_output(),
+        cost, updates = self.get_graph_output()
+        gparams = T.grad(cost=cost,
                          wrt=self.model.parameters,
                          consider_constant=self.consider_constant)
         gradients = dict(zip(self.model.parameters, gparams))
-        return gradients, OrderedDict()
+        return gradients, updates
 
     def _loss_function(self, model_output):
         raise NotImplementedError("Subclass of 'Loss' must implement '_loss_function(model_output)'.")

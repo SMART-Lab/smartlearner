@@ -7,7 +7,6 @@ from .status import Status
 
 class Trainer(object):
     def __init__(self, optimizer, batch_scheduler, stopping_criterion, status=None):
-        super(Trainer, self).__init__()
         self.status = status if status is not None else Status()
         self.status.trainer = self
         self._optimizer = optimizer
