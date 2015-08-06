@@ -30,14 +30,14 @@ class Dataset(object):
 
     @property
     def input_size(self):
-        return len(self.inputs.get_value()[0])
+        return self.inputs.get_value().shape[-1]
 
     @property
     def target_size(self):
         if self.targets is None:
             return 0
         else:
-            return len(self.targets.get_value()[0])
+            return self.targets.get_value().shape[-1]
 
     def __len__(self):
         return len(self.inputs.get_value())
