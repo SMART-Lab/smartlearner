@@ -1,4 +1,4 @@
-from smartpy.interfaces.loss import Loss
+from ..interfaces.loss import Loss
 
 import theano.tensor as T
 
