@@ -7,10 +7,10 @@ class WeightInitializer:
     def __init__(self, random_seed=None):
         self.rng = np.random.mtrand.RandomState(random_seed)
 
-    def __call__(self, sharedVar):
-        dim = sharedVar.get_value().shape
-        sharedVar.set_value(self._generate_array(dim))
-        return sharedVar
+    def __call__(self, shared_var):
+        dim = shared_var.get_value().shape
+        shared_var.set_value(self._generate_array(dim))
+        return shared_var
 
     def _generate_array(self, dim):
         raise NotImplementedError("Use an implementation of this abstract class.")
