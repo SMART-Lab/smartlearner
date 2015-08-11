@@ -16,10 +16,7 @@ class Trainer(object):
 
     def train(self):
         self._pre_learning()
-        try:
-            self._learning()
-        except TrainingExit as e:
-            print(e)
+        self._learning()
         self._post_learning()
 
     def append_task(self, task):
@@ -44,18 +41,21 @@ class Trainer(object):
 
     def _learning(self):
         # Learning
-        while True:  # Runs until a TrainingExit exception is raised (usually inside a Task)
-            self.status.increment_epoch()
+        try:
+            while True:  # Runs until a TrainingExit exception is raised (usually inside a Task)
+                self.status.increment_epoch()
 
-            self._pre_epoch_tasks()
+                self._pre_epoch_tasks()
 
-            for _ in self._batch_scheduler:
-                self.status.increment_update()
-                self._pre_update_tasks()
-                self._learn()
-                self._post_update_tasks()
+                for _ in self._batch_scheduler:
+                    self.status.increment_update()
+                    self._pre_update_tasks()
+                    self._learn()
+                    self._post_update_tasks()
 
-            self._post_epoch_tasks()
+                self._post_epoch_tasks()
+        except TrainingExit as e:
+            print(e)
 
     def _post_learning(self):
         self._finished_tasks()
