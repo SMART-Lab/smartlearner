@@ -3,7 +3,7 @@ from collections import OrderedDict
 import theano
 from time import time
 from .status import Status
-from .tasks.tasks import TrainingExit
+from smartlearner.tasks.stopping_criteria import TrainingExit
 
 
 class Trainer(object):
@@ -48,7 +48,6 @@ class Trainer(object):
             self.status.increment_epoch()
 
             self._pre_epoch_tasks()
-            starttime = time()
 
             for _ in self._batch_scheduler:
                 self.status.increment_update()
@@ -56,7 +55,6 @@ class Trainer(object):
                 self._learn()
                 self._post_update_tasks()
 
-            self.status.training_time += time() - starttime
             self._post_epoch_tasks()
 
     def _post_learning(self):
