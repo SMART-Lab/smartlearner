@@ -3,24 +3,24 @@ from collections import OrderedDict
 import theano
 from time import time
 from .status import Status
+from .tasks.tasks import TrainingExit
 
 
 class Trainer(object):
-    def __init__(self, optimizer, batch_scheduler, stopping_criteria, status=None):
+    def __init__(self, optimizer, batch_scheduler, status=None):
         self.status = status if status is not None else Status(self)
         self._optimizer = optimizer
         self._batch_scheduler = batch_scheduler
         self._updates = OrderedDict()
-        self._stopping_criteria = stopping_criteria
         self._tasks = []
 
     def train(self):
         self._pre_learning()
-        self._learning()
+        try:
+            self._learning()
+        except TrainingExit as e:
+            print(e)
         self._post_learning()
-
-    def append_stopping_criterion(self, criterion):
-        self._stopping_criteria.append(criterion)
 
     def append_task(self, task):
         self._updates.update(task.updates)
@@ -44,7 +44,7 @@ class Trainer(object):
 
     def _learning(self):
         # Learning
-        while not any([stopping_criterion.check(self.status) for stopping_criterion in self._stopping_criteria]):
+        while True:  # Runs until a TrainingExit exception is raised (usually inside a Task)
             self.status.increment_epoch()
 
             self._pre_epoch_tasks()

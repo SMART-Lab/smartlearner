@@ -10,12 +10,12 @@ import theano.tensor as T
 from abc import ABCMeta, abstractmethod
 
 
-class StoppingCriterion(object):
-    __metaclass__ = ABCMeta
+class TrainingExit(Exception):
+    def __init__(self, status):
+        self.status = status
 
-    @abstractmethod
-    def check(self, status):
-        raise NotImplementedError("Subclass of 'StoppingCriterion' must implement 'check(status)'.")
+    def __str__(self):
+        return "Training exited with \n" + repr(self.status)
 
 
 class Task(object):
@@ -193,9 +193,11 @@ class Print(RecurrentTask):
         print(self.msg.format(*values))
 
 
-class MaxEpochStopping(StoppingCriterion):
+class MaxEpochStopping(Task):
     def __init__(self, nb_epochs_max):
+        super().__init__()
         self.nb_epochs_max = nb_epochs_max
 
-    def check(self, status):
-        return status.current_epoch >= self.nb_epochs_max
+    def post_epoch(self, status):
+        if status.current_epoch >= self.nb_epochs_max:
+            raise TrainingExit(status)
