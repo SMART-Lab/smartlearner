@@ -1,10 +1,31 @@
+sudo: false
+cache:
+  directories:
+    - $HOME/download
+    - $HOME/.cache/pip
+
 language: python
 python:
   - "3.3"
   - "3.4"
-  - "3.5"
+
+# command to install dependencies
+before_install:
+# Install miniconda to avoid compiling scipy
+  - mkdir -p download
+  - cd download
+  - wget -c http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - cd ..
+  - export PATH=/home/travis/miniconda/bin:$PATH
+  - conda update --yes conda
 
 install:
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.3' ]]; then conda create --yes -q -n pyenv mkl python=3.3 numpy scipy nose pyparsing pip flake8 six pep8 pyflakes; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then conda create --yes -q -n pyenv mkl python=3.4 numpy scipy nose pyparsing pip flake8 six pep8 pyflakes; fi
+  - source activate pyenv
+  - pip install theano
   - pip install .
 
 # command to run tests, e.g. python setup.py test
