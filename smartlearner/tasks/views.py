@@ -47,8 +47,8 @@ class ClassificationError(View):
         batch_size = 1024  # Internal buffer
         self.nb_batches = int(np.ceil(len(dataset) / batch_size))
 
-        input = T.matrix('input')
-        target = T.matrix('target')
+        input = dataset.symb_inputs
+        target = dataset.symb_targets
         classification_errors = T.neq(predict_fct(input), target)
 
         no_batch = T.iscalar('no_batch')
