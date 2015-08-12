@@ -1,5 +1,5 @@
-from smartlearner.interfaces.model import Model
-from smartlearner.interfaces.dataset import Dataset
-from smartlearner.trainer import Trainer
+from .interfaces.model import Model
+from .interfaces.dataset import Dataset
+from .trainer import Trainer
 
-from smartlearner.tasks import tasks
+from .tasks import tasks
