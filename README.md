@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/SMART-Lab/smartlearner.png)](https://travis-ci.org/SMART-Lab/smartlearner)
+
 # SMART-Learner
 This is a machine learning library built with researchers in mind.
 
