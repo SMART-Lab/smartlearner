@@ -7,9 +7,7 @@ from smartlearner.optimizers.optimizer import Optimizer
 from smartlearner.batch_scheduler import BatchScheduler
 
 from smartlearner.tasks.views import View
-from smartlearner.interfaces.dataset import Dataset
 
-import unittest
 from nose.tools import assert_false
 from numpy.testing import assert_equal
 
