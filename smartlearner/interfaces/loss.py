@@ -11,7 +11,7 @@ class Loss(object):
         self._gradients = None
 
     @property
-    def targets(self):
+    def target(self):
         return self.dataset.symb_targets
 
     def get_graph_output(self):
@@ -29,14 +29,6 @@ class Loss(object):
             self.graph_updates.update(updates_from_model_output)
 
         return self._gradients
-
-    # def get_gradients(self):
-    #     cost, updates = self.get_graph_output()
-    #     gparams = T.grad(cost=cost,
-    #                      wrt=self.model.parameters,
-    #                      consider_constant=self.consider_constant)
-    #     gradients = dict(zip(self.model.parameters, gparams))
-    #     return gradients, updates
 
     def _loss_function(self, model_output):
         raise NotImplementedError("Subclass of 'Loss' must implement '_loss_function(model_output)'.")

@@ -61,4 +61,5 @@ class Optimizer(object):
             modified_object, updates_to_add = modifier.apply(object_to_update)
             object_to_update.update(modified_object)
             update_dict.update(updates_to_add)
+
         return update_dict

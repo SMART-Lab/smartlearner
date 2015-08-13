@@ -34,15 +34,12 @@ class ADAGRAD(SGD):
     def _get_directions(self):
         """ Produces descending directions. """
         directions = OrderedDict()
-        updates = OrderedDict()
+        gradients = super()._get_directions()
 
-        # Get the opposite of the gradients.
-        gradients, updates_from_get_gradients = super()._get_directions()
-        updates.update(updates_from_get_gradients)
-
-        for param, gparam in gradients.items():
+        for i, (param, gparam) in enumerate(gradients.items()):
             # sum_squared_grad := \sum g_t^2
-            sum_squared_grad = sharedX(param.get_value() * 0., name='sum_squared_grad_' + param.name)
+            param_name = param.name if param.name is not None else str(i)
+            sum_squared_grad = sharedX(param.get_value() * 0., name='sum_squared_grad_' + param_name)
             self.parameters[sum_squared_grad.name] = sum_squared_grad
 
             # Accumulate gradient
@@ -52,7 +49,7 @@ class ADAGRAD(SGD):
             root_sum_squared = T.sqrt(new_sum_squared_grad + self.eps)
 
             # Apply update
-            updates[sum_squared_grad] = new_sum_squared_grad
+            self.graph_updates[sum_squared_grad] = new_sum_squared_grad
             directions[param] = (self.lr/root_sum_squared) * gparam
 
-        return directions, updates
+        return directions

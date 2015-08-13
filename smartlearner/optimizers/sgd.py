@@ -8,7 +8,7 @@ class SGD(Optimizer):
         super().__init__(loss)
 
     def _get_directions(self):
-        # Take the opposite of the gradient as direction.
+        # Take the opposite of the gradients as directions.
         directions = OrderedDict()
         for param, gparam in self.loss.gradients.items():
             directions[param] = -gparam

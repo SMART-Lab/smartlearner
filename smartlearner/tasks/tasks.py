@@ -6,6 +6,16 @@ from time import time
 from smartlearner.interfaces.task import Task, RecurrentTask
 
 
+class MonitorVariable(Task):
+    def __init__(self, var):
+        super().__init__()
+        self.var = self.track_variable(var)
+
+    @property
+    def value(self):
+        return self.var.get_value()
+
+
 class PrintVariable(RecurrentTask):
     def __init__(self, msg, *variables, **recurrent_options):
         # TODO: docstring should include **recurrent_options.
