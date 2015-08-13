@@ -71,7 +71,7 @@ def test_early_stopping():
 
     def callback(task, status):
         # This callback function should not be called.
-        raise NameError("Callback should be fired up at epoch #1.")
+        raise NameError("This callback function should not be called.")
 
     early_stopping = stopping_criteria.EarlyStopping(constant_cost, lookahead, callback=callback)
 
@@ -84,9 +84,8 @@ def test_early_stopping():
     assert_equal(early_stopping.best_epoch, 0)
     assert_equal(early_stopping.best_cost, 1.)
     assert_equal(constant_cost.cpt, lookahead)
-    assert_false(trainer.status.current_epoch >= MAX_EPOCH)
 
-    # `lookahead` identical costs than `lookahead` lower identical costs.
+    # `lookahead` identical costs followed by `lookahead` lower identical costs.
     lookahead = 9
     costs = np.r_[np.ones(lookahead-1), np.zeros(lookahead+1)]
     simple_cost = DummyCost(1, costs)
@@ -107,16 +106,15 @@ def test_early_stopping():
     assert_equal(trainer.status.current_epoch, 2*lookahead)
     assert_equal(early_stopping.best_epoch, lookahead)
     assert_equal(early_stopping.best_cost, 0.)
-    assert_false(trainer.status.current_epoch >= MAX_EPOCH)
 
-    # 20 increasing costs but should stop after 9 unchanged epochs.
+    # 20 increasing costs but should stop after 9 increasing epochs.
     lookahead = 9
     costs = range(20)
     increasing_cost = DummyCost(0, costs)
 
     def callback(task, status):
         # This callback function should not be called.
-        raise NameError("Callback should be fired up at epoch #1.")
+        raise NameError("This callback function should not be called.")
 
     early_stopping = stopping_criteria.EarlyStopping(increasing_cost, lookahead, callback=callback)
 
@@ -128,4 +126,17 @@ def test_early_stopping():
     assert_equal(trainer.status.current_epoch, lookahead)
     assert_equal(early_stopping.best_epoch, 0)
     assert_equal(early_stopping.best_cost, 0.)
-    assert_false(trainer.status.current_epoch >= MAX_EPOCH)
+
+    # Test `min_nb_epochs`
+    lookahead = 9
+    min_nb_epochs = 5
+    costs = range(20)
+    increasing_cost = DummyCost(0, costs)
+    early_stopping = stopping_criteria.EarlyStopping(increasing_cost, lookahead, min_nb_epochs=min_nb_epochs)
+
+    trainer = Trainer(DummyOptimizer(), DummyBatchScheduler(nb_updates=5))
+    trainer.append_task(early_stopping)
+    trainer.append_task(stopping_criteria.MaxEpochStopping(MAX_EPOCH))  # To be safe
+    trainer.train()
+
+    assert_equal(trainer.status.current_epoch, lookahead+min_nb_epochs)
