@@ -12,11 +12,21 @@ class Optimizer(object):
         self._update_rules = []
         self._param_modifiers = []
 
+        self.graph_updates = OrderedDict()
+        self._directions = None
+
     def append_update_rule(self, update_rule):
         self._update_rules.append(update_rule)
 
     def append_param_modifier(self, param_modifier):
         self._param_modifiers.append(param_modifier)
+
+    @property
+    def directions(self):
+        if self._directions is None:
+            self._directions = self._get_directions()
+
+        return self._directions
 
     @abstractmethod
     def _get_directions(self):
@@ -25,10 +35,14 @@ class Optimizer(object):
     def gather_updates(self):
         updates = OrderedDict()
 
-        self.directions, updates_from_get_directions = self._get_directions()
-        updates.update(updates_from_get_directions)
+        # Get graph updates of the loss.
+        updates.update(self.loss.graph_updates)
 
-        updates.update(self._apply_updates(self._update_rules, self.directions))
+        # Get graph updates of the optimizer.
+        updates.update(self.graph_updates)
+
+        # Apply directions modifiers
+        updates.update(self._apply_modifier(self._update_rules, self.directions))
 
         # Update parameters
         params_updates = OrderedDict()
@@ -36,14 +50,15 @@ class Optimizer(object):
             params_updates[param] = param + self.directions[param]
         updates.update(params_updates)
 
-        updates.update(self._apply_updates(self._param_modifiers, params_updates))
+        # Apply parameters modifiers
+        updates.update(self._apply_modifier(self._param_modifiers, params_updates))
 
         return updates
 
-    def _apply_updates(self, list_updates, object_to_update):
+    def _apply_modifier(self, list_modifiers, object_to_update):
         update_dict = OrderedDict()
-        for update in list_updates:
-            modified_object, updates_to_add = update.apply(object_to_update)
+        for modifier in list_modifiers:
+            modified_object, updates_to_add = modifier.apply(object_to_update)
             object_to_update.update(modified_object)
             update_dict.update(updates_to_add)
         return update_dict

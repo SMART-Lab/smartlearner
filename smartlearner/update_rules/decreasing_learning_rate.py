@@ -24,17 +24,17 @@ class DecreasingLearningRate(UpdateRule):
         self.lr = lr
         self.dc = dc
 
-    def apply(self, gradients):
+    def apply(self, directions):
         updates = OrderedDict()
-        new_gradients = OrderedDict()
+        new_directions = OrderedDict()
 
-        for param, gparam in gradients.items():
+        for param, gparam in directions.items():
             lr = sharedX(self.lr * np.ones_like(param.get_value()), name='lr_' + param.name)
 
             if self.dc != 0.:
                 # Decrease the learning rate by a factor of `dc` after each update.
                 updates[lr] = self.dc * lr
 
-            new_gradients[param] = lr * gparam
+            new_directions[param] = lr * gparam
 
-        return new_gradients, updates
+        return new_directions, updates
