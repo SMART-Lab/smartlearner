@@ -6,7 +6,7 @@ from smartlearner.tasks import stopping_criteria
 from smartlearner.utils import sharedX
 
 from smartlearner import Trainer
-from smartlearner.optimizers import SGD, ADAGRAD
+from smartlearner.optimizers import SGD, AdaGrad
 from smartlearner.batch_scheduler import BatchScheduler
 
 from smartlearner.tasks import tasks
@@ -54,7 +54,7 @@ def test_sgd():
         trainer = Trainer(SGD(loss), batch_scheduler)
         trainer.append_task(stopping_criteria.MaxEpochStopping(max_epoch))
         #trainer.append_task(tasks.PrintVariable("Loss param: {}", param))
-        trainer.append_task(tasks.PrintVariable("Loss gradient: {}", loss.gradients[param]))
+        #trainer.append_task(tasks.PrintVariable("Loss gradient: {}", loss.gradients[param]))
 
         # Monitor the gradient of `loss` w.r.t. to `param`.
         gparam = tasks.MonitorVariable(loss.gradients[param])
@@ -77,7 +77,7 @@ def test_adagrad():
         loss = DummyLoss(cost, param)
 
         batch_scheduler = DummyBatchScheduler(nb_updates=1)
-        trainer = Trainer(ADAGRAD(loss, lr=0.1, eps=1e-2), batch_scheduler)
+        trainer = Trainer(AdaGrad(loss, lr=0.1, eps=1e-2), batch_scheduler)
         trainer.append_task(stopping_criteria.MaxEpochStopping(max_epoch*N))
         #trainer.append_task(tasks.PrintVariable("Loss param: {}", param))
         #trainer.append_task(tasks.PrintVariable("Loss gradient: {}", loss.gradients[param]))

@@ -5,15 +5,15 @@ from . import SGD
 from ..utils import sharedX
 
 
-class ADAGRAD(SGD):
-    """
-    Implements the ADAGRAD optimizer.
+class AdaGrad(SGD):
+    """ Implements the AdaGrad optimizer [Duchi11]_.
 
-    Reference
-    ---------
-    Duchi, J., Hazan, E., & Singer, Y. (2010).
-    Adaptive subgradient methods for online learning and stochastic optimization.
-    Journal of Machine Learning
+    References
+    ----------
+    .. [Duchi11] Duchi, J., Hazan, E., & Singer, Y., "Adaptive Subgradient
+                 Methods for Online Learning and Stochastic Optimization",
+                 Journal of Machine Learning Research, vol. 12, pp. 2121-2159,
+                 2011.
     """
     def __init__(self, loss, lr, eps=1e-6):
         """
