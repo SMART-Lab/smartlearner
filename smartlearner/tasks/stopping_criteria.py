@@ -57,12 +57,13 @@ class EarlyStopping(Task):
 
     def init(self, status):
         self.best_cost = self.cost.view(status)
+        self._stash_model(status)
 
     def post_epoch(self, status):
         if status.current_epoch <= self.min_nb_epochs:
             # The last skipped epoch should be considered as the best.
             self.best_epoch = status.current_epoch
-            #TODO: save the model
+            self._stash_model(status)
             return
 
         cost = float(self.cost.view(status))
@@ -70,9 +71,20 @@ class EarlyStopping(Task):
             self.best_epoch = status.current_epoch
             self.best_cost = cost
 
-            #TODO: save the model
+            self._stash_model(status)
+
             if self.callback is not None:
                 self.callback(self, status)
 
         if status.current_epoch - self.best_epoch >= self.lookahead:
+            self._restore_model(status)
             raise TrainingExit(status)
+
+    def _stash_model(self, status):
+        model = status.trainer._optimizer.loss.model
+        self.stash = [p.get_value() for p in model.parameters]
+
+    def _restore_model(self, status):
+        model = status.trainer._optimizer.loss.model
+        for param, value in zip(model.parameters, self.stash):
+            param.set_value(value)

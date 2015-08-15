@@ -66,3 +66,11 @@ class Print(RecurrentTask):
         print(self.msg.format(*values))
 
 
+class Callback(RecurrentTask):
+    def __init__(self, callback, **recurrent_options):
+        # TODO: docstring should include **recurrent_options.
+        super(Callback, self).__init__(**recurrent_options)
+        self.callback = callback
+
+    def execute(self, status):
+        self.callback(self, status)

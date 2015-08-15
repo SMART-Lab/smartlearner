@@ -3,48 +3,22 @@ import numpy as np
 from smartlearner.tasks import stopping_criteria
 
 from smartlearner import Trainer
-from smartlearner.optimizers.optimizer import Optimizer
-from smartlearner.batch_scheduler import BatchScheduler
-
+from smartlearner.tasks import tasks
 from smartlearner.tasks.views import View
+from smartlearner.utils import sharedX
 
-from nose.tools import assert_false
-from numpy.testing import assert_equal
+from smartlearner.testing import DummyOptimizer, DummyBatchScheduler
 
-
-class DummyOptimizer(Optimizer):
-    def __init__(self):
-        super().__init__(loss=None)
-
-    def _get_directions(self):
-        return {}, {}
-
-
-class DummyBatchScheduler(BatchScheduler):
-    def __init__(self, nb_updates):
-        self.nb_updates = nb_updates
-
-    @property
-    def givens(self):
-        return {}
-
-    def __iter__(self):
-        return iter(range(self.nb_updates))
+from numpy.testing import assert_equal, assert_array_equal
 
 
 def test_max_epoch_stopping():
     max_epoch = 7
-    nb_updates_per_epoch = 10
-
-    optimizer = DummyOptimizer()
-    batch_scheduler = DummyBatchScheduler(nb_updates=nb_updates_per_epoch)
-    trainer = Trainer(optimizer, batch_scheduler)
+    trainer = Trainer(DummyOptimizer(), DummyBatchScheduler())
     trainer.append_task(stopping_criteria.MaxEpochStopping(max_epoch))
     trainer.train()
 
     assert_equal(trainer.status.current_epoch, max_epoch)
-    assert_equal(trainer.status.current_update, max_epoch*nb_updates_per_epoch)
-    assert_equal(trainer.status.current_update_in_epoch, nb_updates_per_epoch)
 
 
 def test_early_stopping():
@@ -75,7 +49,7 @@ def test_early_stopping():
 
     early_stopping = stopping_criteria.EarlyStopping(constant_cost, lookahead, callback=callback)
 
-    trainer = Trainer(DummyOptimizer(), DummyBatchScheduler(nb_updates=5))
+    trainer = Trainer(DummyOptimizer(), DummyBatchScheduler())
     trainer.append_task(early_stopping)
     trainer.append_task(stopping_criteria.MaxEpochStopping(MAX_EPOCH))  # To be safe
     trainer.train()
@@ -98,7 +72,7 @@ def test_early_stopping():
 
     early_stopping = stopping_criteria.EarlyStopping(simple_cost, lookahead, callback=callback)
 
-    trainer = Trainer(DummyOptimizer(), DummyBatchScheduler(nb_updates=5))
+    trainer = Trainer(DummyOptimizer(), DummyBatchScheduler())
     trainer.append_task(early_stopping)
     trainer.append_task(stopping_criteria.MaxEpochStopping(MAX_EPOCH))  # To be safe
     trainer.train()
@@ -118,7 +92,7 @@ def test_early_stopping():
 
     early_stopping = stopping_criteria.EarlyStopping(increasing_cost, lookahead, callback=callback)
 
-    trainer = Trainer(DummyOptimizer(), DummyBatchScheduler(nb_updates=5))
+    trainer = Trainer(DummyOptimizer(), DummyBatchScheduler())
     trainer.append_task(early_stopping)
     trainer.append_task(stopping_criteria.MaxEpochStopping(MAX_EPOCH))  # To be safe
     trainer.train()
@@ -134,9 +108,35 @@ def test_early_stopping():
     increasing_cost = DummyCost(0, costs)
     early_stopping = stopping_criteria.EarlyStopping(increasing_cost, lookahead, min_nb_epochs=min_nb_epochs)
 
-    trainer = Trainer(DummyOptimizer(), DummyBatchScheduler(nb_updates=5))
+    trainer = Trainer(DummyOptimizer(), DummyBatchScheduler())
     trainer.append_task(early_stopping)
     trainer.append_task(stopping_criteria.MaxEpochStopping(MAX_EPOCH))  # To be safe
     trainer.train()
 
     assert_equal(trainer.status.current_epoch, lookahead+min_nb_epochs)
+
+    # Test that at the end the model is the best one.
+    # `lookahead` decreasing costs followed by `lookahead+1` constant identical costs.
+    lookahead = 9
+    costs = np.r_[-np.arange(lookahead), np.zeros(lookahead+1)]
+    simple_cost = DummyCost(1, costs)
+
+    trainer = Trainer(DummyOptimizer(), DummyBatchScheduler())
+    model = trainer._optimizer.loss.model
+    # Add some parameters to the model.
+    model.parameters.extend([sharedX(np.zeros(4)), sharedX(np.zeros((3, 5)))])
+
+    # Callback that will change model parameters after each epoch.
+    def callback(task, status):
+        for param in model.parameters:
+            param.set_value(param.get_value() + 1)
+
+    trainer.append_task(tasks.Callback(callback))
+
+    early_stopping = stopping_criteria.EarlyStopping(simple_cost, lookahead)
+    trainer.append_task(early_stopping)
+    trainer.append_task(stopping_criteria.MaxEpochStopping(MAX_EPOCH))  # To be safe
+    trainer.train()
+
+    for param in model.parameters:
+        assert_array_equal(param.get_value(), lookahead*np.ones_like(param.get_value()))
