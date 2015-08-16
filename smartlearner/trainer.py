@@ -54,8 +54,8 @@ class Trainer(object):
                     self._post_update_tasks()
 
                 self._post_epoch_tasks()
-        except TrainingExit as e:
-            print(e)
+        except TrainingExit:
+            pass
 
     def _post_learning(self):
         self._finished_tasks()
