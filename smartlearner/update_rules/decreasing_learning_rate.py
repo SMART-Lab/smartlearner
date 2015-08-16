@@ -14,13 +14,14 @@ class DecreasingLearningRate(UpdateRule):
         Parameters
         ----------
         lr: float
-            learning rate
-        dc: float
-            decreasing constant (decay)
+            Learning rate.
+        dc: float in [0,1) (optional)
+            Decreasing constant (decay). Default: 0.
         """
+        if dc < 0. or 1 >= dc:
+            raise ValueError("`dc` must be between 0 (inclusive) and 1 (exclusive)!")
+
         super(DecreasingLearningRate, self).__init__()
-        assert dc <= 1.
-        assert dc >= 0.
         self.lr = lr
         self.dc = dc
 

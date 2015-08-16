@@ -10,10 +10,6 @@ class Loss(object):
         self.graph_updates = OrderedDict()
         self._gradients = None
 
-    @property
-    def target(self):
-        return self.dataset.symb_targets
-
     def get_graph_output(self):
         output, updates = self.model.get_model_output(self.dataset.symb_inputs)
         return self._loss_function(output), updates

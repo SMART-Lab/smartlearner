@@ -5,9 +5,9 @@ import theano.tensor as T
 
 class L2Distance(Loss):
     def _loss_function(self, model_output):
-        return T.mean((model_output - self.target)**2)
+        return T.mean((model_output - self.dataset.symb_targets)**2)
 
 
 class L1Distance(Loss):
     def _loss_function(self, model_output):
-        return T.mean(abs(model_output - self.target))
+        return T.mean(abs(model_output - self.dataset.symb_targets))
