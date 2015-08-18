@@ -3,7 +3,7 @@ from collections import OrderedDict
 import numpy as np
 
 from ..utils import sharedX
-from ..interfaces.modifier import DirectionModifier
+from ..interfaces.direction_modifier import DirectionModifier
 
 
 class DecreasingLearningRate(DirectionModifier):
