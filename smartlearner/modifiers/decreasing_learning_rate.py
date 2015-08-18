@@ -3,10 +3,10 @@ from collections import OrderedDict
 import numpy as np
 
 from ..utils import sharedX
-from . import UpdateRule
+from ..interfaces.modifier import DirectionModifier
 
 
-class DecreasingLearningRate(UpdateRule):
+class DecreasingLearningRate(DirectionModifier):
     def __init__(self, lr, dc=0.):
         """
         Implements a decreasing learning rate update rule.

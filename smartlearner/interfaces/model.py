@@ -12,17 +12,17 @@ class abstractclassmethod(classmethod):
 class Model(object):
     __metaclass__ = ABCMeta
 
+    @property
+    def tasks(self):
+        return []
+
     @abstractmethod
-    def get_model_output(self, inputs):
+    def get_output(self, inputs):
         raise NotImplementedError("Subclass of 'Model' must define a model output (a theano graph)")
 
-    @property
+    @abstractproperty
     def updates(self):
         raise NotImplementedError("Subclass of 'Model' must implement property 'updates'.")
-
-    @abstractmethod
-    def _get_updates(self):
-        raise NotImplementedError("Subclass of 'Model' must implement '_get_updates()'.")
 
     @abstractproperty
     def parameters(self):

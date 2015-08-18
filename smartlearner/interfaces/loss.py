@@ -12,7 +12,12 @@ class Loss(object):
         self.model = model
         self.dataset = dataset
         self.consider_constant = []  # Part of the computational graph to be considered as a constant.
+        self._tasks = []
         self._gradients = None
+
+        # Build the graph for the loss.
+        model_output = self.model.get_output(self.dataset.symb_inputs)
+        self._loss = self._compute_loss(model_output)
 
     @abstractmethod
     def _get_updates(self):
@@ -30,6 +35,10 @@ class Loss(object):
         return self._gradients
 
     @property
+    def tasks(self):
+        return self.model.tasks + self._tasks
+
+    @property
     def updates(self):
         updates = OrderedDict()
         updates.update(self.model.updates)
@@ -37,10 +46,7 @@ class Loss(object):
         return updates
 
     def _get_gradients(self):
-        model_output = self.model.get_model_output(self.dataset.symb_inputs)
-        loss = self._compute_loss(model_output)
-
-        gparams = T.grad(cost=loss,
+        gparams = T.grad(cost=self._loss,
                          wrt=self.model.parameters,
                          consider_constant=self.consider_constant)
         self._gradients = dict(zip(self.model.parameters, gparams))

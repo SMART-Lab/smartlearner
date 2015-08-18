@@ -1,10 +1,10 @@
 import numpy as np
 
-from smartlearner.interfaces.dataset import Dataset
-from smartlearner.interfaces.model import Model
-from smartlearner.interfaces.loss import Loss
-from smartlearner.optimizers.optimizer import Optimizer
-from smartlearner.batch_scheduler import BatchScheduler
+from .interfaces.dataset import Dataset
+from .interfaces.model import Model
+from .interfaces.loss import Loss
+from .interfaces.optimizer import Optimizer
+from .interfaces.batch_scheduler import BatchScheduler
 
 
 class DummyDataset(Dataset):
@@ -25,7 +25,7 @@ class DummyModel(Model):
     def updates(self):
         return {}
 
-    def get_model_output(self, inputs):
+    def get_output(self, inputs):
         return inputs
 
     def save(self, path):

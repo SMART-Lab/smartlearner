@@ -1,30 +1,7 @@
-from abc import ABCMeta, abstractmethod, abstractproperty
-
-import numpy as np
 import theano
+import numpy as np
 
-
-class BatchScheduler(object):
-    __metaclass__ = ABCMeta
-
-    def __init__(self, dataset):
-        self.dataset = dataset
-
-    @property
-    def tasks(self):
-        return []
-
-    @abstractproperty
-    def updates(self):
-        raise NotImplementedError("Subclass of 'BatchScheduler' must implement property 'updates'.")
-
-    @abstractproperty
-    def givens(self):
-        raise NotImplementedError("Subclass of 'BatchScheduler' must implement property 'givens'.")
-
-    @abstractmethod
-    def __iter__(self):
-        raise NotImplementedError("Subclass of 'BatchScheduler' must implement '__iter__()'.")
+from ..interfaces.batch_scheduler import BatchScheduler
 
 
 class MiniBatchScheduler(BatchScheduler):
@@ -33,11 +10,6 @@ class MiniBatchScheduler(BatchScheduler):
         self._shared_batch_size = theano.shared(np.array(0, dtype='i4'))
         self.batch_size = batch_size
         self.shared_batch_count = theano.shared(np.array(0, dtype='i4'))
-
-        # Keep only `batch_size` examples as test values.
-        self.dataset.symb_inputs.tag.test_value = self.dataset.inputs.get_value()[:batch_size]
-        if self.dataset.has_targets:
-            self.dataset.symb_targets.tag.test_value = self.dataset.targets.get_value()[:batch_size]
 
     @property
     def batch_size(self):

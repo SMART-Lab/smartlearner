@@ -8,13 +8,14 @@ class Optimizer(object):
 
     def __init__(self, loss):
         self.loss = loss
+        self._tasks = []
 
-        self._update_rules = []
+        self._direction_modifiers = []
         self._param_modifiers = []
         self._directions = None
 
-    def append_update_rule(self, update_rule):
-        self._update_rules.append(update_rule)
+    def append_direction_modifier(self, direction_modifier):
+        self._direction_modifiers.append(direction_modifier)
 
     def append_param_modifier(self, param_modifier):
         self._param_modifiers.append(param_modifier)
@@ -35,6 +36,20 @@ class Optimizer(object):
         return self._directions
 
     @property
+    def tasks(self):
+        tasks = []
+        tasks.extend(self.loss.tasks)
+
+        for direction_modifier in self._direction_modifiers:
+            tasks.extend(direction_modifier.tasks)
+
+        for param_modifier in self._param_modifiers:
+            tasks.extend(param_modifier.tasks)
+
+        tasks.extend(self._tasks)
+        return tasks
+
+    @property
     def updates(self):
         updates = OrderedDict()
 
@@ -43,12 +58,12 @@ class Optimizer(object):
         updates.update(self._get_updates())  # Gather updates from the optimizer.
 
         # Apply directions modifiers and gather updates from these modifiers.
-        updates.update(self._apply_modifiers(self._update_rules, directions))
+        updates.update(self._apply_modifiers(self._direction_modifiers, directions))
 
         # Update parameters
         params_updates = OrderedDict()
-        for param, gparam in directions.items():
-            params_updates[param] = param + gparam
+        for param, direction in directions.items():
+            params_updates[param] = param + direction
         updates.update(params_updates)
 
         # Apply parameters modifiers and gather updates from these modifiers.

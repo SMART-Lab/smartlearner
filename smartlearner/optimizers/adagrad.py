@@ -38,22 +38,21 @@ class AdaGrad(SGD):
     def _get_directions(self):
         """ Produces descending directions. """
         directions = OrderedDict()
-        gradients = super()._get_directions()
 
-        for i, (param, gparam) in enumerate(gradients.items()):
+        for i, (param, direction) in enumerate(super()._get_directions().items()):
             # sum_squared_grad := \sum g_t^2
             param_name = param.name if param.name is not None else str(i)
             sum_squared_grad = sharedX(param.get_value() * 0., name='sum_squared_grad_' + param_name)
             self.parameters[sum_squared_grad.name] = sum_squared_grad
 
             # Accumulate gradient
-            new_sum_squared_grad = sum_squared_grad + T.sqr(gparam)
+            new_sum_squared_grad = sum_squared_grad + T.sqr(direction)
 
             # Compute update
             root_sum_squared = T.sqrt(new_sum_squared_grad + self.eps)
 
             # Apply update
             self._updates[sum_squared_grad] = new_sum_squared_grad
-            directions[param] = (self.lr/root_sum_squared) * gparam
+            directions[param] = (self.lr/root_sum_squared) * direction
 
         return directions
