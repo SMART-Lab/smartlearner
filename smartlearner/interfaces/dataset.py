@@ -1,21 +1,48 @@
 import numpy as np
 
-import theano
 import theano.tensor as T
 
 from smartlearner.utils import sharedX
 
 
 class Dataset(object):
+    """ Dataset interface.
+
+    Attributes
+    ----------
+    symb_inputs : `theano.tensor.TensorType` object
+        Symbolic variables representing the inputs.
+    symb_targets : `theano.tensor.TensorType` object or None
+        Symbolic variables representing the targets.
+
+    Notes
+    -----
+    `symb_inputs` and `symb_targets` have test value already tagged to them. Use
+    THEANO_FLAGS="compute_test_value=warn" to use them.
+    """
     def __init__(self, inputs, targets=None, name="dataset"):
+        """
+        Parameters
+        ----------
+        inputs : ndarray
+            Training examples
+        targets : ndarray (optional)
+            Target for each training example.
+        name : str (optional)
+            The name of the dataset is used to name Theano variables. Default: 'dataset'.
+        """
         self.name = name
         self.inputs = inputs
         self.targets = targets
-        self.symb_inputs = T.TensorType("floatX", [False]*self.inputs.ndim, name=self.name+'_symb_inputs')
+        self.symb_inputs = T.TensorVariable(type=T.TensorType("floatX", [False]*self.inputs.ndim),
+                                            name=self.name+'_symb_inputs')
+        self.symb_inputs.tag.test_value = self.inputs.get_value()  # For debugging Theano graphs.
 
         self.symb_targets = None
         if self.has_targets:
-            self.symb_targets = T.TensorType("floatX", [False]*self.targets.ndim, name=self.name+'_symb_targets')
+            self.symb_targets = T.TensorVariable(type=T.TensorType("floatX", [False]*self.targets.ndim),
+                                                 name=self.name+'_symb_targets')
+            self.symb_targets.tag.test_value = self.targets.get_value()  # For debugging Theano graphs.
 
     @property
     def inputs(self):

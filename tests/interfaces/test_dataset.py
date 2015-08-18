@@ -1,5 +1,6 @@
 import numpy as np
 import theano
+import theano.tensor as T
 
 from nose.tools import assert_true
 from numpy.testing import assert_equal, assert_array_equal
@@ -8,6 +9,22 @@ from smartlearner.interfaces.dataset import Dataset
 
 floatX = theano.config.floatX
 ALL_DTYPES = np.sctypes['int'] + np.sctypes['uint'] + np.sctypes['float']
+
+
+def test_dataset_used_in_theano_function():
+    rng = np.random.RandomState(1234)
+
+    nb_examples = 10
+
+    inputs = (rng.randn(nb_examples, 5) * 100).astype(floatX)
+    targets = (rng.randn(nb_examples, 1) > 0.5).astype(floatX)
+    dataset = Dataset(inputs, targets)
+
+    input_sqr_norm = T.sum(dataset.symb_inputs**2)
+    result = input_sqr_norm - dataset.symb_targets
+    f = theano.function([dataset.symb_inputs, dataset.symb_targets], result)
+
+    assert_array_equal(f(inputs, targets), np.sum(inputs**2)-targets)
 
 
 def test_dataset_without_targets():
@@ -103,3 +120,21 @@ def test_dataset_with_targets():
     assert_equal(dataset.symb_targets.ndim, 2)
     assert_equal(dataset.target_shape, (3,))
     assert_array_equal(dataset.targets.get_value(), np.array(targets, dtype=floatX))
+
+
+def test_dataset_with_test_value():
+    rng = np.random.RandomState(1234)
+
+    nb_examples = 10
+
+    theano.config.compute_test_value = 'warn'
+    try:
+        inputs = (rng.randn(nb_examples, 5) * 100).astype(floatX)
+        targets = (rng.randn(nb_examples, 1) > 0.5).astype(floatX)
+        dataset = Dataset(inputs, targets)
+
+        input_sqr_norm = T.sum(dataset.symb_inputs**2)
+        result = input_sqr_norm - dataset.symb_targets
+        assert_array_equal(result.tag.test_value, np.sum(inputs**2)-targets)
+    finally:
+        theano.config.compute_test_value = 'off'
