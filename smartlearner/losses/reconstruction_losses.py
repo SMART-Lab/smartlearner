@@ -1,6 +1,6 @@
-from ..interfaces.loss import Loss
-
 import theano.tensor as T
+
+from ..interfaces import Loss
 
 
 class L2Distance(Loss):

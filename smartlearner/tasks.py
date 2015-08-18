@@ -3,7 +3,7 @@ from __future__ import division, print_function
 
 from time import time
 
-from smartlearner.interfaces.task import Task, RecurrentTask
+from .interfaces import Task, RecurrentTask
 
 
 class MonitorVariable(Task):

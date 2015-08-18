@@ -1,10 +1,10 @@
 import numpy as np
 
-from smartlearner.tasks import stopping_criteria
-
 from smartlearner import Trainer
-from smartlearner.tasks import tasks
-from smartlearner.tasks.views import View
+from smartlearner.interfaces import View
+
+from smartlearner import tasks
+from smartlearner import stopping_criteria
 from smartlearner.utils import sharedX
 
 from smartlearner.testing import DummyOptimizer, DummyBatchScheduler

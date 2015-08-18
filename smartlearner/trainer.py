@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 import theano
 from .status import Status
-from .tasks.stopping_criteria import TrainingExit
+from .stopping_criteria import TrainingExit
 
 
 class Trainer(object):

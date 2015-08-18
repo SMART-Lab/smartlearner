@@ -5,7 +5,7 @@ import theano.tensor as T
 from nose.tools import assert_true
 from numpy.testing import assert_equal, assert_array_equal
 
-from smartlearner.interfaces.dataset import Dataset
+from smartlearner.interfaces import Dataset
 
 floatX = theano.config.floatX
 ALL_DTYPES = np.sctypes['int'] + np.sctypes['uint'] + np.sctypes['float']

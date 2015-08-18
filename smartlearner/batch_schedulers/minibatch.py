@@ -1,7 +1,7 @@
 import theano
 import numpy as np
 
-from ..interfaces.batch_scheduler import BatchScheduler
+from ..interfaces import BatchScheduler
 
 
 class MiniBatchScheduler(BatchScheduler):

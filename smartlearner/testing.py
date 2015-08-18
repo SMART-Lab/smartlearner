@@ -1,10 +1,10 @@
 import numpy as np
 
-from .interfaces.dataset import Dataset
-from .interfaces.model import Model
-from .interfaces.loss import Loss
-from .interfaces.optimizer import Optimizer
-from .interfaces.batch_scheduler import BatchScheduler
+from .interfaces import Dataset
+from .interfaces import Model
+from .interfaces import Loss
+from .interfaces import Optimizer
+from .interfaces import BatchScheduler
 
 
 class DummyDataset(Dataset):

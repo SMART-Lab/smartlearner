@@ -3,13 +3,13 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-from smartlearner.tasks import stopping_criteria
+from smartlearner import stopping_criteria
 from smartlearner.utils import sharedX
 
 from smartlearner import Trainer
 from smartlearner.optimizers import SGD, AdaGrad
 
-from smartlearner.tasks import tasks
+from smartlearner import tasks
 
 from numpy.testing import assert_array_almost_equal
 
