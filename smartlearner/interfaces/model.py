@@ -1,5 +1,3 @@
-import theano.tensor as T
-from collections import OrderedDict
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 
@@ -14,8 +12,17 @@ class abstractclassmethod(classmethod):
 class Model(object):
     __metaclass__ = ABCMeta
 
-    def get_model_output(self, inputs):
+    @property
+    def tasks(self):
+        return []
+
+    @abstractmethod
+    def get_output(self, inputs):
         raise NotImplementedError("Subclass of 'Model' must define a model output (a theano graph)")
+
+    @abstractproperty
+    def updates(self):
+        raise NotImplementedError("Subclass of 'Model' must implement property 'updates'.")
 
     @abstractproperty
     def parameters(self):
