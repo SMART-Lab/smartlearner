@@ -30,6 +30,10 @@ class AdaGrad(SGD):
         self.lr = lr
         self.eps = eps
         self.parameters = {}
+        self._updates = OrderedDict()
+
+    def _get_updates(self):
+        return self._updates
 
     def _get_directions(self):
         """ Produces descending directions. """
@@ -49,7 +53,7 @@ class AdaGrad(SGD):
             root_sum_squared = T.sqrt(new_sum_squared_grad + self.eps)
 
             # Apply update
-            self.graph_updates[sum_squared_grad] = new_sum_squared_grad
+            self._updates[sum_squared_grad] = new_sum_squared_grad
             directions[param] = (self.lr/root_sum_squared) * gparam
 
         return directions

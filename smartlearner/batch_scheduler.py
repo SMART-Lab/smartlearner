@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 import numpy as np
 import theano
@@ -10,9 +10,13 @@ class BatchScheduler(object):
     def __init__(self, dataset):
         self.dataset = dataset
 
-    @property
+    @abstractproperty
+    def updates(self):
+        raise NotImplementedError("Subclass of 'BatchScheduler' must implement property 'updates'.")
+
+    @abstractproperty
     def givens(self):
-        raise NotImplementedError("Subclass of 'BatchScheduler' must implement 'givens'.")
+        raise NotImplementedError("Subclass of 'BatchScheduler' must implement property 'givens'.")
 
     @abstractmethod
     def __iter__(self):
@@ -39,6 +43,10 @@ class MiniBatchScheduler(BatchScheduler):
     def batch_size(self, value):
         self._shared_batch_size.set_value(np.array(value, dtype='i4'))
         self.nb_updates_per_epoch = int(np.ceil(len(self.dataset)/self.batch_size))
+
+    @property
+    def updates(self):
+        return {}  # No updates
 
     @property
     def givens(self):

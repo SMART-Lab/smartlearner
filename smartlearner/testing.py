@@ -21,8 +21,12 @@ class DummyModel(Model):
     def parameters(self):
         return self._parameters
 
+    @property
+    def updates(self):
+        return {}
+
     def get_model_output(self, inputs):
-        pass
+        return inputs
 
     def save(self, path):
         pass
@@ -35,16 +39,22 @@ class DummyLoss(Loss):
     def __init__(self):
         super(DummyLoss, self).__init__(DummyModel(), DummyDataset())
 
-    def _loss_function(self, model_output):
-        pass
+    def _compute_loss(self, model_output):
+        return model_output
+
+    def _get_updates(self):
+        return {}
 
 
 class DummyOptimizer(Optimizer):
     def __init__(self):
         super(DummyOptimizer, self).__init__(loss=DummyLoss())
 
+    def _get_updates(self):
+        return {}
+
     def _get_directions(self):
-        return {}, {}
+        return {}
 
 
 class DummyBatchScheduler(BatchScheduler):
@@ -53,6 +63,10 @@ class DummyBatchScheduler(BatchScheduler):
 
     @property
     def givens(self):
+        return {}
+
+    @property
+    def updates(self):
         return {}
 
     def __iter__(self):

@@ -1,7 +1,6 @@
 from collections import OrderedDict
 
 import theano
-from time import time
 from .status import Status
 from smartlearner.tasks.stopping_criteria import TrainingExit
 
@@ -11,8 +10,12 @@ class Trainer(object):
         self.status = status if status is not None else Status(self)
         self._optimizer = optimizer
         self._batch_scheduler = batch_scheduler
-        self._updates = OrderedDict()
         self._tasks = []
+
+        # Gather updates from the optimizer and the batch scheduler.
+        self._graph_updates = OrderedDict()
+        self._graph_updates.update(self._optimizer.updates)
+        self._graph_updates.update(self._batch_scheduler.updates)
 
     def train(self):
         self._pre_learning()
@@ -20,16 +23,14 @@ class Trainer(object):
         self._post_learning()
 
     def append_task(self, task):
-        self._updates.update(task.updates)
+        self._graph_updates.update(task.updates)
         self._tasks.append(task)
 
     def _build_theano_graph(self):
-        updates = self._optimizer.gather_updates()
-        updates.update(self._updates)
         self._learn = theano.function([],
-                       updates=updates,
-                       givens=self._batch_scheduler.givens,
-                       name="learn")
+                                      updates=self._graph_updates,
+                                      givens=self._batch_scheduler.givens,
+                                      name="learn")
 
     def _pre_learning(self):
         self._build_theano_graph()

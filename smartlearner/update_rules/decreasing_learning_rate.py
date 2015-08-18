@@ -18,15 +18,18 @@ class DecreasingLearningRate(UpdateRule):
         dc: float in [0,1) (optional)
             Decreasing constant (decay). Default: 0.
         """
-        if dc < 0. or 1 >= dc:
-            raise ValueError("`dc` must be between 0 (inclusive) and 1 (exclusive)!")
+        if dc < 0. or dc >= 1:
+            raise ValueError("`dc` ({}) must be between 0 (inclusive) and 1 (exclusive)!".format(dc))
 
         super(DecreasingLearningRate, self).__init__()
         self.lr = lr
         self.dc = dc
+        self._updates = OrderedDict()
+
+    def _get_updates(self):
+        return self._updates
 
     def apply(self, directions):
-        updates = OrderedDict()
         new_directions = OrderedDict()
 
         for param, gparam in directions.items():
@@ -34,8 +37,8 @@ class DecreasingLearningRate(UpdateRule):
 
             if self.dc != 0.:
                 # Decrease the learning rate by a factor of `dc` after each update.
-                updates[lr] = self.dc * lr
+                self._updates[lr] = self.dc * lr
 
             new_directions[param] = lr * gparam
 
-        return new_directions, updates
+        return new_directions
