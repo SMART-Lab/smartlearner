@@ -11,6 +11,13 @@ class MiniBatchScheduler(BatchScheduler):
         self.batch_size = batch_size
         self.shared_batch_count = theano.shared(np.array(0, dtype='i4'))
 
+        # Keep only `batch_size` examples as test values.
+        self.dataset.symb_inputs.tag.test_value = self.dataset.inputs.get_value()[:batch_size]
+        if self.dataset.has_targets:
+            self.dataset.symb_targets.tag.test_value = self.dataset.targets.get_value()[:batch_size]
+
+        self.shared_batch_count.tag.test_value = self.shared_batch_count.get_value()
+
     @property
     def batch_size(self):
         return self._shared_batch_size.get_value()
