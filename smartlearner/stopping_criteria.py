@@ -44,7 +44,7 @@ class EarlyStopping(Task):
         instance of `EarlyStopping` and the current `smartlearner.status.Status` object.
     """
     def __init__(self, cost, lookahead, eps=0., min_nb_epochs=0, callback=None):
-        super(EarlyStopping, self).__init__()
+        super().__init__()
 
         self.cost = cost
         self.best_epoch = 0
@@ -79,6 +79,9 @@ class EarlyStopping(Task):
         if status.current_epoch - self.best_epoch >= self.lookahead:
             self._restore_model(status)
             raise TrainingExit(status)
+
+    def finished(self, status):
+        print("Early Stopping : training finished with best cost {:.3f} at epoch {}.".format(self.best_cost, self.best_epoch))
 
     def _stash_model(self, status):
         model = status.trainer._optimizer.loss.model
