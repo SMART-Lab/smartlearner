@@ -1,9 +1,15 @@
 import json
 import theano
+import theano.tensor as T
 
 
-def sharedX(value, name=None, borrow=True):
+def sharedX(value, name=None, borrow=True, keep_on_cpu=False):
     """ Transform value into a shared variable of type floatX """
+    if keep_on_cpu:
+        return T._shared(theano._asarray(value, dtype=theano.config.floatX),
+                         name=name,
+                         borrow=borrow)
+
     return theano.shared(theano._asarray(value, dtype=theano.config.floatX),
                          name=name,
                          borrow=borrow)

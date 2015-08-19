@@ -20,7 +20,7 @@ class Dataset(object):
     `symb_inputs` and `symb_targets` have test value already tagged to them. Use
     THEANO_FLAGS="compute_test_value=warn" to use them.
     """
-    def __init__(self, inputs, targets=None, name="dataset"):
+    def __init__(self, inputs, targets=None, name="dataset", keep_on_cpu=False):
         """
         Parameters
         ----------
@@ -32,6 +32,7 @@ class Dataset(object):
             The name of the dataset is used to name Theano variables. Default: 'dataset'.
         """
         self.name = name
+        self.keep_on_cpu = keep_on_cpu
         self.inputs = inputs
         self.targets = targets
         self.symb_inputs = T.TensorVariable(type=T.TensorType("floatX", [False]*self.inputs.ndim),
@@ -50,7 +51,7 @@ class Dataset(object):
 
     @inputs.setter
     def inputs(self, value):
-        self._inputs_shared = sharedX(value, name=self.name+"_inputs")
+        self._inputs_shared = sharedX(value, name=self.name+"_inputs", keep_on_cpu=self.keep_on_cpu)
 
     @property
     def targets(self):
@@ -59,7 +60,7 @@ class Dataset(object):
     @targets.setter
     def targets(self, value):
         if value is not None:
-            self._targets_shared = sharedX(np.array(value), name=self.name+"_targets")
+            self._targets_shared = sharedX(np.array(value), name=self.name+"_targets", keep_on_cpu=self.keep_on_cpu)
         else:
             self._targets_shared = None
 
