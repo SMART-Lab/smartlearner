@@ -3,7 +3,7 @@ import theano
 import theano.tensor as T
 
 from nose.tools import assert_true
-from numpy.testing import assert_equal, assert_array_equal
+from numpy.testing import assert_equal, assert_array_almost_equal
 
 from smartlearner.interfaces import Dataset
 
@@ -24,7 +24,7 @@ def test_dataset_used_in_theano_function():
     result = input_sqr_norm - dataset.symb_targets
     f = theano.function([dataset.symb_inputs, dataset.symb_targets], result)
 
-    assert_array_equal(f(inputs, targets), np.sum(inputs**2)-targets)
+    assert_array_almost_equal(f(inputs, targets), np.sum(inputs**2)-targets)
 
 
 def test_dataset_without_targets():
@@ -50,7 +50,7 @@ def test_dataset_without_targets():
             assert_equal(dataset.symb_inputs.dtype, floatX)
             assert_equal(dataset.symb_inputs.ndim, inputs.ndim)
             assert_equal(dataset.input_shape, example_shape)
-            assert_array_equal(dataset.inputs.get_value(), inputs.astype(floatX))
+            assert_array_almost_equal(dataset.inputs.get_value(), inputs.astype(floatX))
 
             # Everything related to target should be None
             assert_true(dataset.targets is None)
@@ -66,7 +66,7 @@ def test_dataset_without_targets():
     assert_equal(dataset.symb_inputs.dtype, floatX)
     assert_equal(dataset.symb_inputs.ndim, 2)
     assert_equal(dataset.input_shape, (3,))
-    assert_array_equal(dataset.inputs.get_value(), np.array(inputs, dtype=floatX))
+    assert_array_almost_equal(dataset.inputs.get_value(), np.array(inputs, dtype=floatX))
 
 
 def test_dataset_with_targets():
@@ -96,13 +96,13 @@ def test_dataset_with_targets():
                     assert_equal(dataset.symb_inputs.dtype, floatX)
                     assert_equal(dataset.symb_inputs.ndim, inputs.ndim)
                     assert_equal(dataset.input_shape, example_shape)
-                    assert_array_equal(dataset.inputs.get_value(), inputs.astype(floatX))
+                    assert_array_almost_equal(dataset.inputs.get_value(), inputs.astype(floatX))
 
                     assert_equal(dataset.targets.dtype, floatX)
                     assert_equal(dataset.symb_targets.dtype, floatX)
                     assert_equal(dataset.symb_targets.ndim, targets.ndim)
                     assert_equal(dataset.target_shape, target_shape)
-                    assert_array_equal(dataset.targets.get_value(), targets.astype(floatX))
+                    assert_array_almost_equal(dataset.targets.get_value(), targets.astype(floatX))
 
     # Create dataset from nested Pyton lists.
     inputs = [[1, 2, 3]] * nb_examples
@@ -113,13 +113,13 @@ def test_dataset_with_targets():
     assert_equal(dataset.symb_inputs.dtype, floatX)
     assert_equal(dataset.symb_inputs.ndim, 2)
     assert_equal(dataset.input_shape, (3,))
-    assert_array_equal(dataset.inputs.get_value(), np.array(inputs, dtype=floatX))
+    assert_array_almost_equal(dataset.inputs.get_value(), np.array(inputs, dtype=floatX))
 
     assert_equal(dataset.targets.dtype, floatX)
     assert_equal(dataset.symb_targets.dtype, floatX)
     assert_equal(dataset.symb_targets.ndim, 2)
     assert_equal(dataset.target_shape, (3,))
-    assert_array_equal(dataset.targets.get_value(), np.array(targets, dtype=floatX))
+    assert_array_almost_equal(dataset.targets.get_value(), np.array(targets, dtype=floatX))
 
 
 def test_dataset_with_test_value():
@@ -135,6 +135,6 @@ def test_dataset_with_test_value():
 
         input_sqr_norm = T.sum(dataset.symb_inputs**2)
         result = input_sqr_norm - dataset.symb_targets
-        assert_array_equal(result.tag.test_value, np.sum(inputs**2)-targets)
+        assert_array_almost_equal(result.tag.test_value, np.sum(inputs**2)-targets)
     finally:
         theano.config.compute_test_value = 'off'
