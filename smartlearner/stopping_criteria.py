@@ -77,10 +77,10 @@ class EarlyStopping(Task):
                 self.callback(self, status)
 
         if status.current_epoch - self.best_epoch >= self.lookahead:
-            self._restore_model(status)
             raise TrainingExit(status)
 
     def finished(self, status):
+        self._restore_model(status)
         print("Early Stopping : training finished with best cost {:.3f} at epoch {}.".format(self.best_cost, self.best_epoch))
 
     def _stash_model(self, status):
