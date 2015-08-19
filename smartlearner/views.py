@@ -18,30 +18,34 @@ class ItemGetter(View):
 
 
 class ClassificationError(View):
-    def __init__(self, predict_fct, dataset):
-        super(ClassificationError, self).__init__()
-
-        batch_size = 1024  # Internal buffer
-        self.nb_batches = int(np.ceil(len(dataset) / batch_size))
+    def __init__(self, predict_fct, dataset, batch_size=None):
+        super().__init__()
+        self._batch_size = batch_size
 
         input = dataset.symb_inputs
         target = dataset.symb_targets
         classification_errors = T.neq(predict_fct(input), target)
 
-        no_batch = T.iscalar('no_batch')
-        givens = {input: dataset.inputs[no_batch * batch_size:(no_batch + 1) * batch_size],
-                  target: dataset.targets[no_batch * batch_size:(no_batch + 1) * batch_size]}
-        self.compute_classification_error = theano.function([no_batch],
+        if batch_size is None:
+            inp = []
+            givens = {input: dataset.inputs, target: dataset.targets}
+        else:
+            self.nb_batches = int(np.ceil(len(dataset) / batch_size))
+            no_batch = T.iscalar('no_batch')
+            inp = [no_batch]
+            givens = {input: dataset.inputs[no_batch * batch_size:(no_batch + 1) * batch_size],
+                      target: dataset.targets[no_batch * batch_size:(no_batch + 1) * batch_size]}
+
+        self.compute_classification_error = theano.function(inp,
                                                             classification_errors,
                                                             givens=givens,
-                                                            name="compute_classification_error")
+                                                            name="compute_classification_error" + dataset.name)
 
     def update(self, status):
-        classif_errors = []
-        for i in range(self.nb_batches):
-            classif_errors.append(self.compute_classification_error(i))
-
-        classif_errors = np.concatenate(classif_errors)
+        if self._batch_size is None:
+            classif_errors = self.compute_classification_error()
+        else:
+            classif_errors = np.concatenate([self.compute_classification_error(i) for i in range(self.nb_batches)])
         return classif_errors.mean(), classif_errors.std(ddof=1) / np.sqrt(len(classif_errors))
 
     @property
@@ -53,32 +57,38 @@ class ClassificationError(View):
         return ItemGetter(self, attribute=1)
 
 
-class ReconstructionError(View):
-    def __init__(self, predict_fct, dataset):
+class RegressionError(View):
+    def __init__(self, predict_fct, dataset, batch_size=None):
         super().__init__()
-
-        batch_size = 1024  # Internal buffer
-        self.nb_batches = int(np.ceil(len(dataset) / batch_size))
+        self._batch_size = batch_size
 
         input = dataset.symb_inputs
         target = dataset.symb_targets
-        reconstruction_errors = T.sqr(predict_fct(input) - target).mean()
 
-        no_batch = T.iscalar('no_batch')
-        givens = {input: dataset.inputs[no_batch * batch_size:(no_batch + 1) * batch_size],
-                  target: dataset.targets[no_batch * batch_size:(no_batch + 1) * batch_size]}
-        self.compute_reconstruction_error = theano.function([no_batch],
-                                                            reconstruction_errors,
-                                                            givens=givens,
-                                                            name="compute_reconstruction_error_" + dataset.name)
+        regression_errors = T.sqr(predict_fct(input) - target).mean(axis=1)
+
+        if batch_size is None:
+            inp = []
+            givens = {input: dataset.inputs, target: dataset.targets}
+
+        else:
+            self.nb_batches = int(np.ceil(len(dataset) / batch_size))
+            no_batch = T.iscalar('no_batch')
+            inp = [no_batch]
+            givens = {input: dataset.inputs[no_batch * batch_size:(no_batch + 1) * batch_size],
+                      target: dataset.targets[no_batch * batch_size:(no_batch + 1) * batch_size]}
+
+        self.compute_regression_error = theano.function(inp,
+                                                        regression_errors,
+                                                        givens=givens,
+                                                        name="compute_reconstruction_error_" + dataset.name)
 
     def update(self, status):
-        reconstruction_errors = []
-        for i in range(self.nb_batches):
-            reconstruction_errors.append(self.compute_reconstruction_error(i))
-
-        reconstruction_errors = np.array(reconstruction_errors)
-        return reconstruction_errors.mean(), reconstruction_errors.std(ddof=1) / np.sqrt(len(reconstruction_errors))
+        if self._batch_size is None:
+            regression_errors = self.compute_regression_error()
+        else:
+            regression_errors = np.concatenate([self.compute_regression_error(i) for i in range(self.nb_batches)])
+        return float(regression_errors.mean()), float(regression_errors.std(ddof=1) / np.sqrt(len(regression_errors)))
 
     @property
     def mean(self):
