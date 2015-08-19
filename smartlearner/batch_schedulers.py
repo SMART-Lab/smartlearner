@@ -1,7 +1,7 @@
 import theano
 import numpy as np
 
-from ..interfaces import BatchScheduler
+from smartlearner.interfaces import BatchScheduler
 
 
 class MiniBatchScheduler(BatchScheduler):
