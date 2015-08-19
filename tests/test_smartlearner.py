@@ -1,6 +1,6 @@
 import os
-import numpy as np
 
+import numpy as np
 import theano
 import theano.tensor as T
 
@@ -8,13 +8,11 @@ from smartlearner import Trainer, Dataset, Model
 from smartlearner import tasks
 from smartlearner import views
 from smartlearner import stopping_criteria
-
 import smartlearner.initializers as initer
 from smartlearner.utils import sharedX
-
 from smartlearner.optimizers import SGD
 from smartlearner.direction_modifiers import ConstantLearningRate
-from smartlearner.batch_schedulers.minibatch import MiniBatchScheduler
+from smartlearner.batch_schedulers import MiniBatchScheduler
 from smartlearner.losses.classification_losses import NegativeLogLikelihood as NLL
 
 DATASETS_ENV = 'DATASETS'
