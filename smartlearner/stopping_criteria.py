@@ -1,6 +1,6 @@
 import numpy as np
 
-from smartlearner.interfaces.task import Task
+from .interfaces import Task
 
 
 class TrainingExit(Exception):

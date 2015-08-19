@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from ..interfaces.optimizer import Optimizer
+from ..interfaces import Optimizer
 
 
 class SGD(Optimizer):
