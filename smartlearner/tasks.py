@@ -53,6 +53,21 @@ class Print(RecurrentTask):
         print(self.msg.format(*values))
 
 
+class SaveToFile(Task):
+    def __init__(self, path, msg, *views):
+        super().__init__()
+        self.path = path
+        self.msg = msg
+        self.views = views
+        for view in views:
+            self.updates.update(view.updates)
+
+    def finished(self, status):
+        values = [view.view(status) for view in self.views]
+        with open(self.path, 'a') as f:
+            f.write(self.msg.format(*values))
+
+
 class Callback(RecurrentTask):
     def __init__(self, callback, **recurrent_options):
         # TODO: docstring should include **recurrent_options.
