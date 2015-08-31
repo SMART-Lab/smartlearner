@@ -87,11 +87,7 @@ def growing_sequential_kfold(dataset, k):
     folds = []
 
     for i in range(1, k + 1):
-        if not k - i:
-            proportions = [i, 1, 1]
-        else:
-            proportions = [i, 1, 1, k - i]  # trainset, validset, testset, leftover
-
+        proportions = [i, 1, 1, k - i]  # trainset, validset, testset, leftover
         folds.append(split_dataset(dataset, proportions)[:3])
 
     return folds
