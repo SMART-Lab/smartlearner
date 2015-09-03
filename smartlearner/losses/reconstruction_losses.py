@@ -1,4 +1,4 @@
-import thenao.tensor as T
+import theano.tensor as T
 
 from ..interfaces import Loss
 
