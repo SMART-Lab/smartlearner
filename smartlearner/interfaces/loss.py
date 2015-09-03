@@ -17,6 +17,7 @@ class Loss(object):
 
         # Build the graph for the loss.
         model_output = self.model.get_output(self.dataset.symb_inputs)
+        self._batch_losses = self._compute_batch_losses(model_output)
         self._loss = self._compute_loss(model_output)
 
     @abstractmethod
@@ -24,8 +25,11 @@ class Loss(object):
         raise NotImplementedError("Subclass of 'Loss' must implement '_get_updates()'.")
 
     @abstractmethod
+    def _compute_batch_losses(self, model_output):
+        raise NotImplementedError("Subclass of 'Loss' must implement '_compute_batch_losses(model_output)'.")
+
     def _compute_loss(self, model_output):
-        raise NotImplementedError("Subclass of 'Loss' must implement '_compute_loss(model_output)'.")
+        return T.mean(self._compute_batch_losses(model_output))
 
     @property
     def gradients(self):

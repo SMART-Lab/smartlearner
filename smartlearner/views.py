@@ -2,6 +2,8 @@ import numpy as np
 import theano
 from theano import tensor as T
 
+from collections import OrderedDict
+
 from .interfaces import View
 
 
@@ -15,6 +17,44 @@ class ItemGetter(View):
     def update(self, status):
         infos = self.view_obj.view(status)
         return infos[self.attribute]
+
+
+class LossView(View):
+    def __init__(self, loss, batch_scheduler):
+        super().__init__()
+
+        self.batch_scheduler = batch_scheduler
+
+        # Gather updates from the optimizer and the batch scheduler.
+        graph_updates = OrderedDict()
+        graph_updates.update(loss.updates)
+        graph_updates.update(batch_scheduler.updates)
+
+        self.compute_loss = theano.function([],
+                                            loss._batch_losses,
+                                            updates=graph_updates,
+                                            givens=batch_scheduler.givens,
+                                            name="compute_loss")
+
+    def update(self, status):
+        losses = []
+        for i in self.batch_scheduler:
+            losses.append(self.compute_loss())
+
+        losses = np.concatenate(losses)
+        return losses, float(losses.mean()), float(losses.std(ddof=1) / np.sqrt(len(losses)))
+
+    @property
+    def losses(self):
+        return ItemGetter(self, attribute=0)
+
+    @property
+    def mean(self):
+        return ItemGetter(self, attribute=1)
+
+    @property
+    def stderror(self):
+        return ItemGetter(self, attribute=2)
 
 
 class ClassificationError(View):
