@@ -31,7 +31,7 @@ class LossView(View):
         graph_updates.update(batch_scheduler.updates)
 
         self.compute_loss = theano.function([],
-                                            loss._batch_losses,
+                                            loss.losses,
                                             updates=graph_updates,
                                             givens=batch_scheduler.givens,
                                             name="compute_loss")
