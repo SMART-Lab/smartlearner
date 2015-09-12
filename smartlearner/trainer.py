@@ -31,7 +31,7 @@ class Trainer(object):
     def append_task(self, task):
         self._tasks.append(task)
 
-    def _build_theano_graph(self):
+    def build_theano_graph(self):
         # Get updates from tasks.
         for task in self._tasks:
             self._graph_updates.update(task.updates)
@@ -44,7 +44,7 @@ class Trainer(object):
 
     def _pre_learning(self):
         if self._learn is None:
-            self._build_theano_graph()
+            self.build_theano_graph()
 
         # Only initialize tasks if not resuming
         if self.status.current_update == 0:
