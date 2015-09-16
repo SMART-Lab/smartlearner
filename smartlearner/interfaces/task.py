@@ -28,8 +28,10 @@ class Task(object):
 class RecurrentTask(Task):
     __metaclass__ = ABCMeta
 
-    def __init__(self, each_k_epoch=1, each_k_update=0):
-        super(RecurrentTask, self).__init__()
+    def __init__(self, each_k_epoch=0, each_k_update=0):
+        super().__init__()
+        if each_k_epoch == 0 and each_k_update == 0:
+            each_k_epoch = 1
         self.each_k_epoch = each_k_epoch
         self.each_k_update = each_k_update
 
