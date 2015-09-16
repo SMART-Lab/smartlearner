@@ -1,19 +1,10 @@
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
-import numpy as np
-import theano
 
 
 class Task(object):
     def __init__(self):
         self.updates = OrderedDict()
-
-    def track_variable(self, var, name=None):
-        name = name if name is not None else var.name
-        name = name if name is not None else var.auto_name
-        var_shared = theano.shared(np.array(0, dtype=var.dtype, ndmin=var.ndim), name=name)
-        self.updates[var_shared] = var
-        return var_shared
 
     def init(self, status):
         pass

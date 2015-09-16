@@ -57,6 +57,22 @@ class LossView(View):
         return ItemGetter(self, attribute=2)
 
 
+class MonitorVariable(View):
+    def __init__(self, var):
+        super().__init__()
+        self.var = self.track_variable(var)
+
+    def update(self, status):
+        return self.var.get_value(borrow=False)
+
+    def track_variable(self, var, name=None):
+        name = name if name is not None else var.name
+        name = name if name is not None else var.auto_name
+        var_shared = theano.shared(np.array(0, dtype=var.dtype, ndmin=var.ndim), name=name)
+        self.updates[var_shared] = var
+        return var_shared
+
+
 class ClassificationError(View):
     def __init__(self, predict_fct, dataset, batch_size=None):
         super().__init__()
