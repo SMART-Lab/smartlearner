@@ -28,8 +28,8 @@ class Trainer(object):
         self._learning()
         self._post_learning()
 
-    def append_task(self, task):
-        self._tasks.append(task)
+    def append_task(self, *tasks):
+        self._tasks.extend(tasks)
 
     def build_theano_graph(self):
         # Get updates from tasks.

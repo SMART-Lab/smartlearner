@@ -78,6 +78,9 @@ class Logger(RecurrentTask):
     def __iter__(self):
         return (v for v in zip(*self._history))
 
+    def __str__(self):
+        return '\n'.join(map(str, self))
+
     def get_variable_history(self, var):
         if isinstance(var, int):
             idx = var
@@ -97,7 +100,7 @@ class Logger(RecurrentTask):
             h.append(v)
 
     def _create_history(self):
-        return len(self._views) * [[]]
+        return [[] for _ in self._views]
 
     def _get_variable_history(self, index):
         return self._history[index]
@@ -105,8 +108,10 @@ class Logger(RecurrentTask):
 
 class Accumulator(Logger):
     def _log(self, values_to_log):
-        for v, h in zip(values_to_log, self._history):
-            h += v
+        self._history = [v+h for v, h in zip(values_to_log, self._history)]
 
     def _create_history(self):
         return len(self._views) * [0]
+
+    def __iter__(self):
+        return iter(self._history)
