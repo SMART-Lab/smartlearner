@@ -21,6 +21,8 @@ class Trainer(object):
         self._tasks.extend(self._optimizer.tasks)
         self._tasks.extend(self._batch_scheduler.tasks)
 
+        self._learn = None
+
     def train(self):
         self._pre_learning()
         self._learning()
@@ -29,7 +31,7 @@ class Trainer(object):
     def append_task(self, task):
         self._tasks.append(task)
 
-    def _build_theano_graph(self):
+    def build_theano_graph(self):
         # Get updates from tasks.
         for task in self._tasks:
             self._graph_updates.update(task.updates)
@@ -38,10 +40,11 @@ class Trainer(object):
                                       updates=self._graph_updates,
                                       givens=self._batch_scheduler.givens,
                                       name="learn")
+        #theano.printing.pydotprint(self._learn, '{0}_learn_{1}'.format(self._optimizer.loss.model.__class__.__name__, theano.config.device), with_ids=True)
 
     def _pre_learning(self):
-        self._build_theano_graph()
-        #theano.printing.pydotprint(learn, '{0}_learn_{1}'.format(self.optimizer.model.__class__.__name__, theano.config.device), with_ids=True)
+        if self._learn is None:
+            self.build_theano_graph()
 
         # Only initialize tasks if not resuming
         if self.status.current_update == 0:
