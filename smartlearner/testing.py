@@ -39,7 +39,7 @@ class DummyLoss(Loss):
     def __init__(self):
         super(DummyLoss, self).__init__(DummyModel(), DummyDataset())
 
-    def _compute_loss(self, model_output):
+    def _compute_batch_losses(self, model_output):
         return model_output
 
     def _get_updates(self):

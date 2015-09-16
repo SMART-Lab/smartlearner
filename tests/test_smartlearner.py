@@ -12,8 +12,9 @@ import smartlearner.initializers as initer
 from smartlearner.utils import sharedX
 from smartlearner.optimizers import SGD
 from smartlearner.direction_modifiers import ConstantLearningRate
-from smartlearner.batch_schedulers import MiniBatchScheduler
+from smartlearner.batch_schedulers import FullBatchScheduler, MiniBatchScheduler
 from smartlearner.losses.classification_losses import NegativeLogLikelihood as NLL
+from smartlearner.losses.classification_losses import ClassificationError
 
 DATASETS_ENV = 'DATASETS'
 
@@ -117,8 +118,15 @@ def test_simple_perceptron():
     trainer.append_task(tasks.PrintEpochDuration())
     trainer.append_task(tasks.PrintTrainingDuration())
 
+    # Print NLL mean/stderror.
+    nll = views.LossView(loss=NLL(model, validset), batch_scheduler=FullBatchScheduler(validset))
+    trainer.append_task(tasks.Print("Validset - NLL          : {0:.1%} ± {1:.1%}",
+                                    nll.mean, nll.stderror))
+
     # Print mean/stderror of classification errors.
-    classif_error = views.ClassificationError(model.use, validset)
-    trainer.append_task(tasks.Print("Validset - Classif error: {0:.1%} ± {1:.1%}", classif_error.mean, classif_error.stderror))
+    classif_error = views.LossView(loss=ClassificationError(model, validset),
+                                   batch_scheduler=FullBatchScheduler(validset))
+    trainer.append_task(tasks.Print("Validset - Classif error: {0:.1%} ± {1:.1%}",
+                                    classif_error.mean, classif_error.stderror))
 
     trainer.train()

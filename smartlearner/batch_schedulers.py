@@ -50,4 +50,4 @@ class MiniBatchScheduler(BatchScheduler):
 
 class FullBatchScheduler(MiniBatchScheduler):
     def __init__(self, dataset):
-        super(FullBatchScheduler, self).__init__(dataset, batch_size=len(self.dataset))
+        super(FullBatchScheduler, self).__init__(dataset, batch_size=len(dataset))
