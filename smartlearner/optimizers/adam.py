@@ -5,6 +5,7 @@ import theano.tensor as T
 import numpy as np
 
 from ..interfaces import Optimizer
+from ..utils import sharedX
 
 class Adam(Optimizer):
     def __init__(self, loss, learning_rate=0.0001, b1=0.9, b2=0.999, epsilon=1e-8, lmbda=(1 - 1e-8)):
@@ -16,13 +17,13 @@ class Adam(Optimizer):
         self.lmbda = lmbda
 
         self._updates = OrderedDict()
-        self.t = theano.shared(0)
+        self.t = sharedX(0, name='t')
         self.mts = []
         self.vts = []
 
-        for param in loss.gradients:        # iterates on the parameters key
-            self.mts.append(theano.shared(np.zeros_like(param.get_value())))
-            self.vts.append(theano.shared(np.zeros_like(param.get_value())))
+        for i, param in enumerate(loss.gradients):  # iterates on the parameters key
+            self.mts.append(sharedX(np.zeros_like(param.get_value()), name='mt{}'.format(i)))
+            self.vts.append(sharedX(np.zeros_like(param.get_value()), name='vt{}'.format(i)))
 
     def _get_updates(self):
         return self._updates

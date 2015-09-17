@@ -1,19 +1,13 @@
 import numpy as np
-
 import theano
 import theano.tensor as T
-
-from smartlearner import stopping_criteria
-from smartlearner.utils import sharedX
-
-from smartlearner import Trainer
-from smartlearner.optimizers import SGD, AdaGrad
-
-from smartlearner import tasks
-
 from numpy.testing import assert_array_almost_equal
 
+from smartlearner import stopping_criteria, Trainer, tasks
+from smartlearner.optimizers import SGD, AdaGrad, Adam
 from smartlearner.testing import DummyLoss, DummyBatchScheduler
+from smartlearner.utils import sharedX
+
 
 floatX = theano.config.floatX
 
@@ -105,6 +99,36 @@ def test_adagrad():
         trainer.append_task(gparam)
         trainer.train()
 
-        # After 30 epochs, param should be around the center and gradients near 0.
+        # After 15 epochs, param should be around the center and gradients near 0.
+        assert_array_almost_equal(param.get_value(), center)
+        assert_array_almost_equal(gparam.value, 0.)
+
+
+def test_adam():
+    max_epoch = 300
+
+    # Create an Nd gaussian functions to optimize. These functions are not
+    # well-conditioned and there exists no perfect gradient step to converge in
+    # only one iteration.
+    for N in range(1, 5):
+        center = 5*np.ones((1, N)).astype(floatX)
+        param = sharedX(np.zeros((1, N)))
+        cost = T.sum(0.5*T.dot(T.dot((param-center), np.diag(1./np.arange(1, N+1))), ((param-center).T)))
+        loss = DummyLossWithGradient(cost, param)
+
+        # Even with a really high gradient step, AdaGrad can still converge.
+        # Actually, it is faster than using the optimal gradient step with SGD.
+        optimizer = Adam(loss, learning_rate=1)
+        trainer = Trainer(optimizer, DummyBatchScheduler())
+        trainer.append_task(stopping_criteria.MaxEpochStopping(max_epoch))
+        #trainer.append_task(tasks.PrintVariable("Loss param   : {}", param))
+        #trainer.append_task(tasks.PrintVariable("Loss gradient: {}", loss.gradients[param]))
+
+        # Monitor the gradient of `loss` w.r.t. to `param`.
+        gparam = tasks.MonitorVariable(loss.gradients[param])
+        trainer.append_task(gparam)
+        trainer.train()
+
+        # After 300 epochs, param should be around the center and gradients near 0.
         assert_array_almost_equal(param.get_value(), center)
         assert_array_almost_equal(gparam.value, 0.)
