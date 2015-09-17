@@ -115,3 +115,14 @@ class Accumulator(Logger):
 
     def __iter__(self):
         return iter(self._history)
+
+
+class Tracker(Logger):
+    def _log(self, values_to_log):
+        self._history = list(values_to_log)
+
+    def _create_history(self):
+        return []
+
+    def __iter__(self):
+        return iter(self._history)
