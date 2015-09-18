@@ -117,7 +117,7 @@ def test_adam():
         loss = DummyLossWithGradient(cost, param)
 
         # Even with a really high gradient step, Adam can still converge.
-        optimizer = Adam(loss, learning_rate=1)
+        optimizer = Adam(loss, lr=1)
         trainer = Trainer(optimizer, DummyBatchScheduler())
         trainer.append_task(stopping_criteria.MaxEpochStopping(max_epoch))
         #trainer.append_task(tasks.PrintVariable("Loss param   : {}", param))
