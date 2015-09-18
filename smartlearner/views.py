@@ -5,7 +5,6 @@ from theano import tensor as T
 from collections import OrderedDict
 
 from .interfaces import View
-from .tasks import Accumulator
 
 
 class ItemGetter(View):
@@ -72,19 +71,6 @@ class MonitorVariable(View):
         var_shared = theano.shared(np.array(0, dtype=var.dtype, ndmin=var.ndim), name=name)
         self.updates[var_shared] = var
         return var_shared
-
-
-class AveragePerEpoch(View, Accumulator):
-    def __init__(self, *views):
-        View.__init__(self)
-        Accumulator.__init__(self, *views, each_k_update=1)
-
-    def update(self, status):
-        n = status.current_update_in_epoch
-        return [v/n for v in self]
-
-    def pre_epoch(self, status):
-        self.clear()
 
 
 class ClassificationError(View):

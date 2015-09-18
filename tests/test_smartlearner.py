@@ -121,7 +121,7 @@ def test_simple_perceptron():
 
     # Log training error
     loss_monitor = views.MonitorVariable(loss.loss)
-    avg_loss = views.AveragePerEpoch(loss_monitor)
+    avg_loss = tasks.AveragePerEpoch(loss_monitor)
     accum = tasks.Accumulator(loss_monitor)
     logger = tasks.Logger(loss_monitor, avg_loss)
     trainer.append_task(logger, avg_loss, accum)

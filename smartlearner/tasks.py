@@ -1,6 +1,7 @@
 from time import time
 
-from .interfaces import Task, RecurrentTask
+from .interfaces import Task, RecurrentTask, View
+from .views import MonitorVariable
 
 
 class PrintEpochDuration(RecurrentTask):
@@ -121,5 +122,21 @@ class Accumulator(Logger):
 
 
 class Tracker(Accumulator):
+    def __init__(self, *vars, **freqs):
+        super().__init__(*[MonitorVariable(v) for v in vars], **freqs)
+
     def _log(self, values_to_log):
         self._history = list(values_to_log)
+
+
+class AveragePerEpoch(View, Accumulator):
+    def __init__(self, *views):
+        View.__init__(self)
+        Accumulator.__init__(self, *views, each_k_update=1)
+
+    def update(self, status):
+        n = status.current_update_in_epoch
+        return [v/n for v in self]
+
+    def pre_epoch(self, status):
+        self.clear()
