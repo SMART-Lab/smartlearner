@@ -8,8 +8,6 @@ from ..utils import sharedX
 class AdaGrad(SGD):
     """ Implements the AdaGrad optimizer [Duchi11]_.
 
-    References
-    ----------
     .. [Duchi11] Duchi, J., Hazan, E., & Singer, Y., "Adaptive Subgradient
                  Methods for Online Learning and Stochastic Optimization",
                  Journal of Machine Learning Research, vol. 12, pp. 2121-2159,

@@ -116,8 +116,7 @@ def test_adam():
         cost = T.sum(0.5*T.dot(T.dot((param-center), np.diag(1./np.arange(1, N+1))), ((param-center).T)))
         loss = DummyLossWithGradient(cost, param)
 
-        # Even with a really high gradient step, AdaGrad can still converge.
-        # Actually, it is faster than using the optimal gradient step with SGD.
+        # Even with a really high gradient step, Adam can still converge.
         optimizer = Adam(loss, learning_rate=1)
         trainer = Trainer(optimizer, DummyBatchScheduler())
         trainer.append_task(stopping_criteria.MaxEpochStopping(max_epoch))
