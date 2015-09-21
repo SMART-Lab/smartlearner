@@ -77,5 +77,5 @@ class Loss(object):
         gparams = T.grad(cost=self.loss,
                          wrt=self.model.parameters,
                          consider_constant=self.consider_constant)
-        self._gradients = dict(zip(self.model.parameters, gparams))
+        self._gradients = OrderedDict(zip(self.model.parameters, gparams))
         return self.gradients
