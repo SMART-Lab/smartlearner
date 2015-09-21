@@ -1,17 +1,10 @@
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
-import numpy as np
-import theano
 
 
 class Task(object):
     def __init__(self):
         self.updates = OrderedDict()
-
-    def track_variable(self, var, name=""):
-        var_shared = theano.shared(np.array(0, dtype=var.dtype, ndmin=var.ndim), name=name)
-        self.updates[var_shared] = var
-        return var_shared
 
     def init(self, status):
         pass
@@ -35,8 +28,10 @@ class Task(object):
 class RecurrentTask(Task):
     __metaclass__ = ABCMeta
 
-    def __init__(self, each_k_epoch=1, each_k_update=0):
-        super(RecurrentTask, self).__init__()
+    def __init__(self, each_k_epoch=0, each_k_update=0):
+        super().__init__()
+        if each_k_epoch == 0 and each_k_update == 0:
+            each_k_epoch = 1
         self.each_k_epoch = each_k_epoch
         self.each_k_update = each_k_update
 
