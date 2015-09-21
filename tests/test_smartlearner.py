@@ -139,6 +139,4 @@ def test_simple_perceptron():
 
     trainer.train()
 
-    print(logger)
-
 

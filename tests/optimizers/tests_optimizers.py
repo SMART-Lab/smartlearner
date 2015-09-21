@@ -102,7 +102,7 @@ def test_adagrad():
 
         # After 15 epochs, param should be around the center and gradients near 0.
         assert_array_almost_equal(param.get_value(), center)
-        assert_array_almost_equal(gparam.value, 0.)
+        assert_array_almost_equal(tracker[0], 0.)
 
 
 def test_adam():
@@ -125,8 +125,8 @@ def test_adam():
         #trainer.append_task(tasks.PrintVariable("Loss gradient: {}", loss.gradients[param]))
 
         # Monitor the gradient of `loss` w.r.t. to `param`.
-        gparam = tasks.MonitorVariable(loss.gradients[param])
-        trainer.append_task(gparam)
+        tracker = tasks.Tracker(loss.gradients[param])
+        trainer.append_task(tracker)
         trainer.train()
 
         # After 300 epochs, param should be around the center and gradients near 0.
