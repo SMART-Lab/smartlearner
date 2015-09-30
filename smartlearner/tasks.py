@@ -50,7 +50,7 @@ class Print(RecurrentTask):
 
     def execute(self, status):
         values = [view.view(status) for view in self.views]
-        print(self.msg.format(*values))
+        print("{}:{}  ".format(status.current_epoch, status.current_update_in_epoch), self.msg.format(*values))
 
 
 class SaveToFile(Task):
