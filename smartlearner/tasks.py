@@ -38,11 +38,13 @@ class Breakpoint(RecurrentTask):
 
 
 class Print(RecurrentTask):
-    def __init__(self, msg, *views, **recurrent_options):
+    def __init__(self, msg, *views, print_epoch=True, print_update=False, **recurrent_options):
         # TODO: docstring should include **recurrent_options.
         super(Print, self).__init__(**recurrent_options)
         self.msg = msg
         self.views = views
+        self._p_epoch = print_epoch
+        self._p_update = print_update
 
         # Add updates of the views.
         for view in self.views:
@@ -50,7 +52,11 @@ class Print(RecurrentTask):
 
     def execute(self, status):
         values = [view.view(status) for view in self.views]
-        print("{}:{}  ".format(status.current_epoch, status.current_update_in_epoch), self.msg.format(*values))
+        if self._p_epoch:
+            print(status.current_epoch, end=':')
+        if self._p_update:
+            print(status.current_update_in_epoch, end='  ')
+        print(self.msg.format(*values))
 
 
 class SaveToFile(Task):
