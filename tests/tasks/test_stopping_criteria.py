@@ -103,7 +103,7 @@ def test_early_stopping():
 
     # Test `min_nb_epochs`
     lookahead = 9
-    min_nb_epochs = 5
+    min_nb_epochs = 15
     costs = range(20)
     increasing_cost = DummyCost(0, costs)
     early_stopping = stopping_criteria.EarlyStopping(increasing_cost, lookahead, min_nb_epochs=min_nb_epochs)
@@ -113,7 +113,7 @@ def test_early_stopping():
     trainer.append_task(stopping_criteria.MaxEpochStopping(MAX_EPOCH))  # To be safe
     trainer.train()
 
-    assert_equal(trainer.status.current_epoch, lookahead+min_nb_epochs)
+    assert_equal(trainer.status.current_epoch, min_nb_epochs)
 
     # Test that at the end the model is the best one.
     # `lookahead` decreasing costs followed by `lookahead+1` constant identical costs.
