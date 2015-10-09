@@ -1,7 +1,7 @@
 from time import time
 
 from .interfaces import Task, RecurrentTask, View
-from .views import MonitorVariable
+from .views import MonitorVariable, ItemGetter
 
 
 class PrintEpochDuration(RecurrentTask):
@@ -161,3 +161,6 @@ class AveragePerEpoch(View, Accumulator):
 
     def pre_epoch(self, status):
         self.clear()
+
+    def __getitem__(self, idx):
+        return ItemGetter(self, attribute=idx)

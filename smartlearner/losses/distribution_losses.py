@@ -8,4 +8,4 @@ class BinaryCrossEntropy(Loss):
         return {}  # There is no updates for BinaryCrossEntropy.
 
     def _compute_losses(self, model_output):
-        return T.nnet.binary_crossentropy(model_output, self.dataset.symb_targets)
+        return T.sum(T.nnet.binary_crossentropy(model_output, self.dataset.symb_targets), axis=1)
