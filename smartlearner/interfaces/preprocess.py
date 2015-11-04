@@ -3,33 +3,43 @@ from abc import ABCMeta, abstractmethod
 from .dataset import Dataset
 
 
-class Preprocess(Dataset):
+class Preprocess:
     __metaclass__ = ABCMeta
 
-    def __init__(self, dataset):
-        tgts = dataset.targets.get_value() if dataset.has_targets else None
-        super().__init__(inputs=dataset.inputs.get_value(), targets=tgts,
-                         name=dataset.name, keep_on_cpu=dataset.keep_on_cpu)
-        self.symb_inputs = dataset.symb_inputs
-        self.symb_targets = dataset.symb_targets
+    def __init__(self, parent_preprocess=None):
+        self._parent_preprocess = parent_preprocess
 
-        self._is_preprocessed = False
-        self._dataset = dataset
+    def __call__(self, dset):
+        return self.apply_preprocess(dset)
 
-    def apply_preprocess(self):
-        if not self._is_preprocessed:
-            try:
-                self._dataset.apply_preprocess()
-            except AttributeError:
-                pass
-            self._apply_preprocessing()
-            self._is_preprocessed = True
-        return self
+    def apply_preprocess(self, dset):
+        try:
+            dset = self._parent_preprocess.apply_preprocess(dset)
+        except AttributeError:
+            pass
+        return self._apply_preprocessing(dset)
 
-    @abstractmethod
     def reverse_preprocessing(self, dset):
-        raise NotImplementedError("Subclass of 'Preprocess' must implement 'reverse_preprocess'.")
+        try:
+            dset = self._reverse_preprocessing(dset)
+        except NotImplementedError:
+            raise NotImplementedError(type(self).__name__ + " preprocessing can't be reversed.")
+        try:
+            dset = self._parent_preprocess.reverse_preprocess(dset)
+        except AttributeError:
+            pass
+        return dset
+
+    @staticmethod
+    def _dataset_copy(dataset, inputs=None, targets=None):
+        inp = inputs if inputs is not None else dataset.inputs
+        tar = targets if targets is not None else dataset.targets
+        return Dataset(inp, tar, dataset.name, dataset.keep_on_cpu)
 
     @abstractmethod
-    def _apply_preprocessing(self):
+    def _reverse_preprocessing(self, dset):
+        raise NotImplementedError("Subclass of 'Preprocess' must implement '_reverse_preprocess'.")
+
+    @abstractmethod
+    def _apply_preprocessing(self, dset):
         raise NotImplementedError("Subclass of 'Preprocess' must implement '_apply_preprocess'.")
