@@ -94,3 +94,15 @@ class Dataset(object):
 
     def __len__(self):
         return len(self.inputs.get_value())
+
+    def create_linked_dataset(self, inputs, targets=None, name=None, keep_on_cpu=None):
+        name = name if name is not None else self.name + '_linked'
+        koc = keep_on_cpu if keep_on_cpu is not None else self.keep_on_cpu
+
+        dset = Dataset(inputs, targets, name, koc)
+
+        dset.symb_inputs = self.symb_inputs
+        if dset.has_targets:
+            dset.symb_targets = self.symb_targets
+
+        return dset
