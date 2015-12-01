@@ -1,7 +1,5 @@
 from abc import ABCMeta, abstractmethod
 
-from .dataset import Dataset
-
 
 class Preprocess:
     __metaclass__ = ABCMeta
@@ -34,7 +32,7 @@ class Preprocess:
     def _dataset_copy(dataset, inputs=None, targets=None):
         inp = inputs if inputs is not None else dataset.inputs
         tar = targets if targets is not None else dataset.targets
-        return Dataset(inp, tar, dataset.name, dataset.keep_on_cpu)
+        return dataset.create_linked_dataset(inp, tar, dataset.name, dataset.keep_on_cpu)
 
     @abstractmethod
     def _reverse_preprocessing(self, dset):

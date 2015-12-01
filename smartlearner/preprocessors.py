@@ -33,7 +33,7 @@ class NormalizeTargets(NormalizeFeature):
 
 
 class LagExamples(Preprocess):
-    def __init__(self, lag, parent_preprocess):
+    def __init__(self, lag, parent_preprocess=None):
         super().__init__(parent_preprocess)
         self.lag = lag
 
