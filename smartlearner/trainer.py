@@ -1,5 +1,8 @@
 from collections import OrderedDict
 
+from os.path import join as pjoin
+from . import utils
+
 import theano
 from .status import Status
 from .stopping_criteria import TrainingExit
@@ -41,6 +44,26 @@ class Trainer(object):
                                       givens=self._batch_scheduler.givens,
                                       name="learn")
         #theano.printing.pydotprint(self._learn, '{0}_learn_{1}'.format(self._optimizer.loss.model.__class__.__name__, theano.config.device), with_ids=True)
+
+    def save(self, path):
+        savedir = utils.create_folder(pjoin(path, "training"))
+        self.status.save(savedir)
+        self._optimizer.save(savedir)
+        self._batch_scheduler.save(savedir)
+
+        tasks_dir = utils.create_folder(pjoin(savedir, 'tasks'))
+        for task in self._tasks:
+            task.save(tasks_dir)
+
+    def load(self, path):
+        loaddir = pjoin(path, "training")
+        self.status.load(loaddir)
+        self._optimizer.load(loaddir)
+        self._batch_scheduler.load(loaddir)
+
+        tasks_dir = pjoin(loaddir, 'tasks')
+        for task in self._tasks:
+            task.load(tasks_dir)
 
     def _pre_learning(self):
         if self._learn is None:

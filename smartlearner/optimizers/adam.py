@@ -1,3 +1,4 @@
+from os.path import join as pjoin
 from collections import OrderedDict
 
 import theano.tensor as T
@@ -5,6 +6,7 @@ import numpy as np
 
 from ..interfaces import Optimizer
 from ..utils import sharedX
+
 
 class Adam(Optimizer):
     def __init__(self, loss, lr=0.0001, b1=0.9, b2=0.999, epsilon=1e-8):
@@ -76,3 +78,18 @@ class Adam(Optimizer):
             directions[param] = -at * mt / (T.sqrt(vt) + self.eps)
 
         return directions
+
+    def _save(self, path):
+        state = {"version": 1,
+                 "t": self.t.get_value()}
+        for param in self.mts + self.vts:
+            state[param.name] = param.get_value()
+
+        np.savez(pjoin(path, 'adam.npz'), **state)
+
+    def _load(self, path):
+        state = np.load(pjoin(path, 'adam.npz'))
+        self.t.set_value(state["t"])
+
+        for param in self.mts + self.vts:
+            param.set_value(state[param.name])

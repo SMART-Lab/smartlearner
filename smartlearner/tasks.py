@@ -1,5 +1,7 @@
 from time import time
+from os.path import join as pjoin
 
+from . import utils
 from .interfaces import Task, RecurrentTask, View
 from .views import MonitorVariable
 
@@ -22,6 +24,15 @@ class PrintTrainingDuration(Task):
 
     def finished(self, status):
         print("Training done in {:.03f} sec.".format(time() - self.start_time))
+
+    def save(self, path):
+        state = {"version": 1,
+                 "start_time": self.start_time}
+        utils.save_dict_to_json_file(pjoin(path, "print_training_duration.json"), state)
+
+    def load(self, path):
+        state = utils.load_dict_from_json_file(pjoin(path, "print_training_duration.json"))
+        self.start_time = state["start_time"]
 
 
 class Breakpoint(RecurrentTask):

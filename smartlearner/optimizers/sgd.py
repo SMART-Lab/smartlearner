@@ -17,3 +17,9 @@ class SGD(Optimizer):
             directions[param] = -gradient
 
         return directions
+
+    def _save(self, savedir="./"):
+        pass
+
+    def _load(self, loaddir="./"):
+        pass

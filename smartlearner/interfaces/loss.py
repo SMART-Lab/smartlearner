@@ -21,6 +21,12 @@ class Loss(object):
     def _get_updates(self):
         raise NotImplementedError("Subclass of 'Loss' must implement '_get_updates()'.")
 
+    def _save(self, path):
+        pass
+
+    def _load(self, path):
+        pass
+
     def _compute_losses(self, model_output):
         class_name = self.__class__.__name__
         raise NotImplementedError("{0} does not implement '_compute_losses(model_output)'.".format(class_name))
@@ -79,3 +85,11 @@ class Loss(object):
                          consider_constant=self.consider_constant)
         self._gradients = OrderedDict(zip(self.model.parameters, gparams))
         return self.gradients
+
+    def save(self, path):
+        self.model.save(path)
+        self._save(path)
+
+    def load(self, path):
+        self.model.load(path)
+        self._load(path)

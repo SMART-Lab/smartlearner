@@ -28,6 +28,14 @@ class Optimizer(object):
     def _get_updates(self):
         raise NotImplementedError("Subclass of 'Optimizer' must implement private property '_updates'.")
 
+    @abstractmethod
+    def _save(self, path):
+        raise NotImplementedError("Subclass of 'Optimizer' must implement '_save(path)'.")
+
+    @abstractmethod
+    def _load(self, path):
+        raise NotImplementedError("Subclass of 'Optimizer' must implement '_load(path)'.")
+
     @property
     def directions(self):
         if self._directions is None:
@@ -79,3 +87,13 @@ class Optimizer(object):
             updates.update(modifier.updates)
 
         return updates
+
+    def save(self, path):
+        # TODO: should we save directions and params modifiers?
+        self.loss.save(path)
+        self._save(path)
+
+    def load(self, path):
+        # TODO: should we load directions and params modifiers?
+        self.loss.load(path)
+        self._load(path)

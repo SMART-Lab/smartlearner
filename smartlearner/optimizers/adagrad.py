@@ -1,3 +1,7 @@
+import numpy as np
+from os.path import join as pjoin
+
+
 from collections import OrderedDict
 import theano.tensor as T
 
@@ -54,3 +58,16 @@ class AdaGrad(SGD):
             directions[param] = (self.lr/root_sum_squared) * direction
 
         return directions
+
+    def _save(self, path):
+        state = {"version": 1}
+        for k, param in self.parameters.items():
+            state[k] = param.get_value()
+
+        np.savez(pjoin(path, 'adagrad.npz'), **state)
+
+    def _load(self, path):
+        state = np.load(pjoin(path, 'adagrad.npz'))
+
+        for k, param in self.parameters.items():
+            param.set_value(state[k])

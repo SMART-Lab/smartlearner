@@ -1,5 +1,6 @@
 import theano
 import numpy as np
+from os.path import join as pjoin
 
 from smartlearner.interfaces import BatchScheduler
 
@@ -46,6 +47,18 @@ class MiniBatchScheduler(BatchScheduler):
         for batch_count in range(self.nb_updates_per_epoch):
             self.shared_batch_count.set_value(batch_count)
             yield batch_count + 1
+
+    def save(self, savedir="./"):
+        state = {"version": 1,
+                 "batch_size": self.batch_size,
+                 "shared_batch_count": self.shared_batch_count.get_value()}
+
+        np.savez(pjoin(savedir, 'mini_batch_scheduler.npz'), **state)
+
+    def load(self, loaddir="./"):
+        state = np.load(pjoin(loaddir, 'mini_batch_scheduler.npz'))
+        self.batch_size = state["batch_size"]
+        self.shared_batch_count.set_value(state["shared_batch_count"])
 
 
 class FullBatchScheduler(MiniBatchScheduler):

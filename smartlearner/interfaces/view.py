@@ -9,11 +9,13 @@ class View(object):
         self.updates = OrderedDict()
         self.value = None
         self.last_update = -1
+        self.last_epoch = -1
 
     def view(self, status):
-        if self.last_update != status.current_update:
+        if self.last_update != status.current_update or self.last_epoch != status.current_epoch:
             self.value = self.update(status)
             self.last_update = status.current_update
+            self.last_epoch = status.current_epoch
 
         return self.value
 
