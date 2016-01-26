@@ -1,4 +1,5 @@
 import numpy as np
+import tempfile
 
 from smartlearner import Trainer
 from smartlearner.interfaces import View
@@ -140,3 +141,32 @@ def test_early_stopping():
 
     for param in model.parameters:
         assert_array_equal(param.get_value(), lookahead*np.ones_like(param.get_value()))
+
+    # Test save/load methods.
+    # 20 identical costs but should stop after 9 unchanged epochs.
+    constant_cost = DummyCost(1, np.ones(20))
+    lookahead = 9
+
+    def callback(task, status):
+        # This callback function should not be called.
+        raise NameError("This callback function should not be called.")
+
+    early_stopping1 = stopping_criteria.EarlyStopping(constant_cost, lookahead, callback=callback)
+    early_stopping2 = stopping_criteria.EarlyStopping(constant_cost, lookahead, callback=callback)
+
+    trainer = Trainer(DummyOptimizer(), DummyBatchScheduler())
+    trainer.append_task(early_stopping1)
+    trainer.append_task(stopping_criteria.MaxEpochStopping(nb_epochs_max=5))
+    trainer.train()
+
+    # Save the early stopping task and reload it.
+    with tempfile.TemporaryDirectory() as experiment_dir:
+        # Save current state of the task.
+        early_stopping1.save(experiment_dir)
+        # Load saved state of the task in a new instance.
+        early_stopping2.load(experiment_dir)
+
+    assert_equal(early_stopping2.best_epoch, early_stopping1.best_epoch)
+    assert_equal(early_stopping2.best_cost, early_stopping1.best_cost)
+    for param1, param2 in zip(early_stopping2.stash, early_stopping1.stash):
+        assert_array_equal(param1, param2)

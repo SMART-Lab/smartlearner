@@ -1,5 +1,7 @@
 import numpy as np
+from os.path import join as pjoin
 
+from . import utils
 from .interfaces import Task
 
 
@@ -55,6 +57,8 @@ class EarlyStopping(Task):
         self.eps = eps
         self.min_nb_epochs = min_nb_epochs
 
+        self.stash = None
+
     def init(self, status):
         self.best_cost = self.cost.view(status)
         self._stash_model(status)
@@ -85,3 +89,19 @@ class EarlyStopping(Task):
         model = status.trainer._optimizer.loss.model
         for param, value in zip(model.parameters, self.stash):
             param.set_value(value)
+
+    def save(self, path):
+        state = {"version": 1,
+                 "best_epoch": self.best_epoch,
+                 "best_cost": self.best_cost,
+                 "lookahead": self.lookahead,
+                 "eps": self.eps,
+                 "min_nb_epochs": self.min_nb_epochs,
+                 "stash": self.stash}
+        utils.save_dict_to_json_file(pjoin(path, "early_stopping.json"), state)
+
+    def load(self, path):
+        state = utils.load_dict_from_json_file(pjoin(path, "early_stopping.json"))
+        self.best_epoch = state["best_epoch"]
+        self.best_cost = state["best_cost"]
+        self.stash = state["stash"]
