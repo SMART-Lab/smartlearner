@@ -6,7 +6,7 @@ import theano.tensor as T
 import tempfile
 from os.path import join as pjoin
 
-from numpy.testing import assert_equal, assert_array_equal
+from numpy.testing import assert_equal, assert_almost_equal, assert_array_equal, assert_array_almost_equal
 
 from smartlearner import Trainer, Dataset, Model
 from smartlearner import tasks
@@ -121,15 +121,15 @@ class Perceptron(Model):
 
 
 def test_simple_perceptron():
-    #Loading dataset
+    # Loading dataset
     trainset, validset, testset = load_mnist()
 
-    #Creating model
+    # Creating model
     nb_classes = 10
     model = Perceptron(trainset.input_size, nb_classes)
     model.initialize()  # By default, uniform initialization.
 
-    #Building optimizer
+    # Building optimizer
     loss = NLL(model, trainset)
     optimizer = SGD(loss=loss)
     optimizer.append_direction_modifier(ConstantLearningRate(0.1))
@@ -168,152 +168,117 @@ def test_simple_perceptron():
 
 
 def test_resume_experiment():
-    #Loading dataset
+    # Loading dataset
     trainset, validset, testset = load_mnist()
-
-    #Creating model
     nb_classes = 10
-    model1 = Perceptron(trainset.input_size, nb_classes)
-    model1.initialize(initer.UniformInitializer(random_seed=1234))
 
-    #Building optimizer
-    loss1 = NLL(model1, trainset)
-    optimizer1 = SGD(loss=loss1)
-    optimizer1.append_direction_modifier(ConstantLearningRate(0.1))
+    # Nested function to build a trainer.
+    def _build_trainer(nb_epochs):
+        print("Will build a trainer is going to train a Perceptron for {0} epochs.".format(nb_epochs))
 
-    # Use mini batches of 100 examples.
-    batch_scheduler1 = MiniBatchScheduler(trainset, 100)
+        print("Building model")
+        model = Perceptron(trainset.input_size, nb_classes)
+        model.initialize(initer.UniformInitializer(random_seed=1234))
 
-    # Build trainer and add some tasks.
-    trainer1 = Trainer(optimizer1, batch_scheduler1)
+        print("Building optimizer")
+        loss = NLL(model, trainset)
+        optimizer = SGD(loss=loss)
+        optimizer.append_direction_modifier(ConstantLearningRate(0.1))
 
-    # Print time for one epoch
-    trainer1.append_task(tasks.PrintEpochDuration())
-    trainer1.append_task(tasks.PrintTrainingDuration())
+        # Use mini batches of 100 examples.
+        batch_scheduler = MiniBatchScheduler(trainset, 100)
 
-    # Log training error
-    loss_monitor1 = views.MonitorVariable(loss1.loss)
-    avg_loss1 = tasks.AveragePerEpoch(loss_monitor1)
+        print("Building trainer")
+        trainer = Trainer(optimizer, batch_scheduler)
 
-    # Print NLL mean/stderror.
-    nll1 = views.LossView(loss=NLL(model1, validset), batch_scheduler=FullBatchScheduler(validset))
-    logger1 = tasks.Logger(loss_monitor1, avg_loss1, nll1.mean)
-    trainer1.append_task(logger1, avg_loss1)
+        # Print time for one epoch
+        trainer.append_task(tasks.PrintEpochDuration())
+        trainer.append_task(tasks.PrintTrainingDuration())
 
-    # Train for 10 epochs (stopping criteria should be added at the end).
-    trainer1.append_task(stopping_criteria.MaxEpochStopping(10))
+        # Log training error
+        loss_monitor = views.MonitorVariable(loss.loss)
+        avg_loss = tasks.AveragePerEpoch(loss_monitor)
 
+        # Print NLL mean/stderror.
+        nll = views.LossView(loss=NLL(model, validset), batch_scheduler=FullBatchScheduler(validset))
+        logger = tasks.Logger(loss_monitor, avg_loss, nll.mean)
+        trainer.append_task(logger, avg_loss)
+
+        # Train for `nb_epochs` epochs (stopping criteria should be added at the end).
+        trainer.append_task(stopping_criteria.MaxEpochStopping(nb_epochs))
+
+        return trainer, nll, logger
+
+    trainer1, nll1, logger1 = _build_trainer(nb_epochs=10)
+    print("Compiling training graph")
+    trainer1.build_theano_graph()
+
+    print("Training")
     trainer1.train()
 
-    # Redo training but stop at epoch #5, save and resume.
+    trainer2a, nll2a, logger2a = _build_trainer(5)
+    print("Compiling training graph")
+    trainer2a.build_theano_graph()
 
-    #Creating model
-    model2a = Perceptron(trainset.input_size, nb_classes)
-    model2a.initialize(initer.UniformInitializer(random_seed=1234))
-
-    #Building optimizer
-    loss2a = NLL(model2a, trainset)
-    optimizer2a = SGD(loss=loss2a)
-    optimizer2a.append_direction_modifier(ConstantLearningRate(0.1))
-
-    # Use mini batches of 100 examples.
-    batch_scheduler2a = MiniBatchScheduler(trainset, 100)
-
-    # Build trainer and add some tasks.
-    trainer2a = Trainer(optimizer2a, batch_scheduler2a)
-
-    # Print time for one epoch
-    trainer2a.append_task(tasks.PrintEpochDuration())
-    trainer2a.append_task(tasks.PrintTrainingDuration())
-
-    # Log training error
-    loss_monitor2a = views.MonitorVariable(loss2a.loss)
-    avg_loss2a = tasks.AveragePerEpoch(loss_monitor2a)
-
-    # Print NLL mean/stderror.
-    nll2a = views.LossView(loss=NLL(model2a, validset), batch_scheduler=FullBatchScheduler(validset))
-    logger2a = tasks.Logger(loss_monitor2a, avg_loss2a, nll2a.mean)
-    trainer2a.append_task(logger2a, avg_loss2a)
-
-    # Train for 5 epochs (stopping criteria should be added at the end).
-    trainer2a.append_task(stopping_criteria.MaxEpochStopping(5))
-
-    # Will stop training after 5 epochs
+    print("Training")
     trainer2a.train()
-
-    # Simulate resuming an experiment.
-
-    #Creating model
-    model2b = Perceptron(trainset.input_size, nb_classes)
-    model2b.initialize(initer.UniformInitializer(random_seed=1234))
-
-    #Building optimizer
-    loss2b = NLL(model2b, trainset)
-    optimizer2b = SGD(loss=loss2b)
-    optimizer2b.append_direction_modifier(ConstantLearningRate(0.1))
-
-    # Use mini batches of 100 examples.
-    batch_scheduler2b = MiniBatchScheduler(trainset, 100)
-
-    # Build trainer and add some tasks.
-    trainer2b = Trainer(optimizer2b, batch_scheduler2b)
-
-    # Print time for one epoch
-    trainer2b.append_task(tasks.PrintEpochDuration())
-    trainer2b.append_task(tasks.PrintTrainingDuration())
-
-    # Log training error
-    loss_monitor2b = views.MonitorVariable(loss2b.loss)
-    avg_loss2b = tasks.AveragePerEpoch(loss_monitor2b)
-
-    # Print NLL mean/stderror.
-    nll2b = views.LossView(loss=NLL(model2b, validset), batch_scheduler=FullBatchScheduler(validset))
-    logger2b = tasks.Logger(loss_monitor2b, avg_loss2b, nll2b.mean)
-    trainer2b.append_task(logger2b, avg_loss2b)
-
-    # Train for 10 epochs (stopping criteria should be added at the end).
-    trainer2b.append_task(stopping_criteria.MaxEpochStopping(10))
 
     # Save model halfway during training and resume it.
     with tempfile.TemporaryDirectory() as experiment_dir:
+        print("Saving")
         # Save current state of the model (i.e. after 5 epochs).
         trainer2a.save(experiment_dir)
+
+        print("Loading")
         # Load previous state from which training will resume.
+        trainer2b, nll2b, logger2b = _build_trainer(10)
         trainer2b.load(experiment_dir)
 
-    # Check that the `model` state after loading matches the one saved.
-    assert_array_equal(model2b.W.get_value(), model2a.W.get_value())
-    assert_array_equal(model2b.b.get_value(), model2a.b.get_value())
+        # Check we correctly reloaded the model.
+        assert_equal(len(trainer2a._optimizer.loss.model.parameters),
+                     len(trainer2b._optimizer.loss.model.parameters))
+        for param1, param2 in zip(trainer2a._optimizer.loss.model.parameters,
+                                  trainer2b._optimizer.loss.model.parameters):
+            assert_array_equal(param1.get_value(), param2.get_value(), err_msg=param1.name)
 
-    # Check that the `status` state after loading matches the one saved.
-    assert_equal(trainer2b.status.current_epoch, trainer2a.status.current_epoch)
-    assert_equal(trainer2b.status.current_update, trainer2a.status.current_update)
-    assert_equal(trainer2b.status.current_update_in_epoch, trainer2a.status.current_update_in_epoch)
-    assert_equal(trainer2b.status.training_time, trainer2a.status.training_time)
-    assert_equal(trainer2b.status.done, trainer2a.status.done)
-    assert_equal(trainer2b.status.extra, trainer2a.status.extra)
+        # Check that the `status` state after loading matches the one saved.
+        assert_equal(trainer2b.status.current_epoch, trainer2a.status.current_epoch)
+        assert_equal(trainer2b.status.current_update, trainer2a.status.current_update)
+        assert_equal(trainer2b.status.current_update_in_epoch, trainer2a.status.current_update_in_epoch)
+        assert_equal(trainer2b.status.training_time, trainer2a.status.training_time)
+        assert_equal(trainer2b.status.done, trainer2a.status.done)
+        assert_equal(trainer2b.status.extra, trainer2a.status.extra)
 
-    # Check that the `batch_scheduler` state after loading matches the one saved.
-    assert_equal(trainer2b._batch_scheduler.batch_size, trainer2a._batch_scheduler.batch_size)
-    assert_equal(trainer2b._batch_scheduler.shared_batch_count.get_value(),
-                 trainer2a._batch_scheduler.shared_batch_count.get_value())
+        # Check that the `batch_scheduler` state after loading matches the one saved.
+        assert_equal(trainer2b._batch_scheduler.batch_size, trainer2a._batch_scheduler.batch_size)
+        assert_equal(trainer2b._batch_scheduler.shared_batch_count.get_value(),
+                     trainer2a._batch_scheduler.shared_batch_count.get_value())
 
-    # Resume training
+        # Check that the `optimizer` state after loading matches the one saved.
+        assert_equal(trainer2a._optimizer.getstate(), trainer2b._optimizer.getstate())
+
+    print("Compiling training graph")
+    trainer2b.build_theano_graph()
+
+    print("Training")
     trainer2b.train()
 
-    # Check that the `model` state after completing the training matches the one trained in one shot.
-    assert_array_equal(model2b.W.get_value(), model1.W.get_value())
-    assert_array_equal(model2b.b.get_value(), model1.b.get_value())
+    # Check we correctly resumed training.
+    assert_equal(len(trainer1._optimizer.loss.model.parameters),
+                 len(trainer2b._optimizer.loss.model.parameters))
+    for param1, param2 in zip(trainer1._optimizer.loss.model.parameters,
+                              trainer2b._optimizer.loss.model.parameters):
 
-    # Check that the `status` state after completing the training matches the one trained in one shot.
-    assert_equal(trainer2b.status.current_epoch, trainer1.status.current_epoch)
-    assert_equal(trainer2b.status.current_update, trainer1.status.current_update)
-    assert_equal(trainer2b.status.current_update_in_epoch, trainer1.status.current_update_in_epoch)
-    assert_equal(trainer2b.status.done, trainer1.status.done)
+        # I tested it, they are exactly equal when using float64.
+        assert_array_almost_equal(param1.get_value(), param2.get_value(), err_msg=param1.name)
 
-    # Check that the `batch_scheduler` state after completing the training matches the one trained in one shot.
-    assert_equal(trainer2b._batch_scheduler.shared_batch_count.get_value(),
-                 trainer1._batch_scheduler.shared_batch_count.get_value())
+    # I tested it, they are exactly equal when using float64.
+    assert_array_almost_equal(nll1.mean.view(trainer1.status), nll2b.mean.view(trainer2b.status))
+    assert_array_almost_equal(nll1.stderror.view(trainer1.status), nll2b.stderror.view(trainer2b.status))
+
+    # I tested it, they are exactly equal when using float64 on CPU.
+    assert_array_almost_equal(logger1.get_variable_history(0), logger2a.get_variable_history(0)+logger2b.get_variable_history(0))
+    assert_array_almost_equal(logger1.get_variable_history(1), logger2a.get_variable_history(1)+logger2b.get_variable_history(1))
 
     # Check that concatenating `logger2a` with `logger2b` is the same as `logger1`.
     for i in range(len(logger1[0])):

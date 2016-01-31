@@ -1,4 +1,6 @@
+import numpy as np
 from collections import OrderedDict
+from os.path import join as pjoin
 
 from abc import ABCMeta, abstractmethod
 
@@ -29,12 +31,14 @@ class Optimizer(object):
         raise NotImplementedError("Subclass of 'Optimizer' must implement private property '_updates'.")
 
     @abstractmethod
-    def _save(self, path):
-        raise NotImplementedError("Subclass of 'Optimizer' must implement '_save(path)'.")
+    def getstate(self):
+        """ Returns the state of the optimizer. """
+        raise NotImplementedError("Subclass of 'Optimizer' must implement 'getstate()'.")
 
     @abstractmethod
-    def _load(self, path):
-        raise NotImplementedError("Subclass of 'Optimizer' must implement '_load(path)'.")
+    def setstate(self, state):
+        """ Restores the optimizer to a given state. """
+        raise NotImplementedError("Subclass of 'Optimizer' must implement 'setstate(state)'.")
 
     @property
     def directions(self):
@@ -89,11 +93,11 @@ class Optimizer(object):
         return updates
 
     def save(self, path):
-        # TODO: should we save directions and params modifiers?
         self.loss.save(path)
-        self._save(path)
+        state = self.getstate()
+        np.savez(pjoin(path, 'optimizer.npz'), **state)
 
     def load(self, path):
-        # TODO: should we load directions and params modifiers?
         self.loss.load(path)
-        self._load(path)
+        state = np.load(pjoin(path, 'optimizer.npz'))
+        self.setstate(state)

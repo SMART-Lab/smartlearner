@@ -29,8 +29,3 @@ class Model(object):
     def load(self, path):
         """ Loads model information from disk. """
         raise NotImplementedError("Subclass of 'Model' must implement 'load(path)'.")
-
-    @classmethod
-    def create(cls, path):
-        """ Creates an instance of the model using information previously saved on disk. """
-        raise NotImplementedError("Subclass of 'Model' can implement 'create(path)'.")

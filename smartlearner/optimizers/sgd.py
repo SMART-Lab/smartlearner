@@ -18,8 +18,11 @@ class SGD(Optimizer):
 
         return directions
 
-    def _save(self, savedir="./"):
-        pass
+    def getstate(self):
+        state = {"version": 1,
+                 "__name__": type(self).__name__}
 
-    def _load(self, loaddir="./"):
+        return state
+
+    def setstate(self, state):
         pass

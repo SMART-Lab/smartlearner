@@ -79,16 +79,21 @@ class Adam(Optimizer):
 
         return directions
 
-    def _save(self, path):
+    def getstate(self):
         state = {"version": 1,
+                 "__name__": type(self).__name__,
                  "t": self.t.get_value()}
+
         for param in self.mts + self.vts:
             state[param.name] = param.get_value()
 
-        np.savez(pjoin(path, 'adam.npz'), **state)
+        return state
 
-    def _load(self, path):
-        state = np.load(pjoin(path, 'adam.npz'))
+    def setstate(self, state):
+        if state["__name__"] != type(self).__name__:
+            msg = "Trying to restore a '{}'' object with the state of '{}'."
+            raise NameError(msg.format(type(self).__name__, state["__name__"]))
+
         self.t.set_value(state["t"])
 
         for param in self.mts + self.vts:

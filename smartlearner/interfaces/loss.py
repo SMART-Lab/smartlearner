@@ -1,4 +1,6 @@
+import numpy as np
 from collections import OrderedDict
+from os.path import join as pjoin
 
 from theano import tensor as T
 
@@ -21,11 +23,15 @@ class Loss(object):
     def _get_updates(self):
         raise NotImplementedError("Subclass of 'Loss' must implement '_get_updates()'.")
 
-    def _save(self, path):
-        pass
+    @abstractmethod
+    def getstate(self):
+        """ Returns the state of the loss. """
+        raise NotImplementedError("Subclass of 'Loss' must implement 'getstate()'.")
 
-    def _load(self, path):
-        pass
+    @abstractmethod
+    def setstate(self, state):
+        """ Restores the loss to a given state. """
+        raise NotImplementedError("Subclass of 'Loss' must implement 'setstate(state)'.")
 
     def _compute_losses(self, model_output):
         class_name = self.__class__.__name__
@@ -88,8 +94,10 @@ class Loss(object):
 
     def save(self, path):
         self.model.save(path)
-        self._save(path)
+        state = self.getstate()
+        np.savez(pjoin(path, 'loss.npz'), **state)
 
     def load(self, path):
         self.model.load(path)
-        self._load(path)
+        state = np.load(pjoin(path, 'loss.npz'))
+        self.setstate(state)

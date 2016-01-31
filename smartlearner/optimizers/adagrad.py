@@ -59,15 +59,19 @@ class AdaGrad(SGD):
 
         return directions
 
-    def _save(self, path):
-        state = {"version": 1}
+    def getstate(self):
+        state = {"version": 1,
+                 "__name__": type(self).__name__}
+
         for k, param in self.parameters.items():
             state[k] = param.get_value()
 
-        np.savez(pjoin(path, 'adagrad.npz'), **state)
+        return state
 
-    def _load(self, path):
-        state = np.load(pjoin(path, 'adagrad.npz'))
+    def setstate(self, state):
+        if state["__name__"] != type(self).__name__:
+            msg = "Trying to restore a '{}'' object with the state of '{}'."
+            raise NameError(msg.format(type(self).__name__, state["__name__"]))
 
         for k, param in self.parameters.items():
             param.set_value(state[k])
