@@ -95,6 +95,7 @@ class Loss(object):
     def save(self, path):
         self.model.save(path)
         state = self.getstate()
+        state["__name__"] = type(self).__name__
         np.savez(pjoin(path, 'loss.npz'), **state)
 
     def load(self, path):

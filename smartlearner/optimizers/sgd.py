@@ -19,9 +19,7 @@ class SGD(Optimizer):
         return directions
 
     def getstate(self):
-        state = {"version": 1,
-                 "__name__": type(self).__name__}
-
+        state = {"version": 1}
         return state
 
     def setstate(self, state):

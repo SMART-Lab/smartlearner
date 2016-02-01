@@ -45,6 +45,12 @@ class DummyLoss(Loss):
     def _get_updates(self):
         return {}
 
+    def getstate(self):
+        return {}
+
+    def setstate(self, state):
+        pass
+
 
 class DummyOptimizer(Optimizer):
     def __init__(self):
@@ -71,3 +77,9 @@ class DummyBatchScheduler(BatchScheduler):
 
     def __iter__(self):
         return iter(range(1))
+
+    def save(self, path):
+        pass
+
+    def load(self, path):
+        pass

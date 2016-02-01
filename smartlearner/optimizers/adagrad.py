@@ -60,8 +60,7 @@ class AdaGrad(SGD):
         return directions
 
     def getstate(self):
-        state = {"version": 1,
-                 "__name__": type(self).__name__}
+        state = {"version": 1}
 
         for k, param in self.parameters.items():
             state[k] = param.get_value()
@@ -69,9 +68,5 @@ class AdaGrad(SGD):
         return state
 
     def setstate(self, state):
-        if state["__name__"] != type(self).__name__:
-            msg = "Trying to restore a '{}'' object with the state of '{}'."
-            raise NameError(msg.format(type(self).__name__, state["__name__"]))
-
         for k, param in self.parameters.items():
             param.set_value(state[k])
