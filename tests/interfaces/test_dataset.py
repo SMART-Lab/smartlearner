@@ -2,10 +2,11 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-from nose.tools import assert_true
+from nose.tools import assert_true, assert_equals
 from numpy.testing import assert_equal, assert_array_almost_equal
 
 from smartlearner.interfaces import Dataset
+from smartlearner.preprocessors import NormalizeFeature
 
 floatX = theano.config.floatX
 ALL_DTYPES = np.sctypes['int'] + np.sctypes['uint'] + np.sctypes['float']
@@ -138,3 +139,22 @@ def test_dataset_with_test_value():
         assert_array_almost_equal(result.tag.test_value, np.sum(inputs**2)-targets)
     finally:
         theano.config.compute_test_value = 'off'
+
+
+def test_preprocessor_normalize_feature():
+    orig_data = np.random.random((100, 3))
+    dset = Dataset(orig_data)
+    norm = NormalizeFeature(dset, feature_selector=[slice(None), slice(1, None)])
+    norm_dset = norm.apply_preprocess(dset)
+    norm_data = norm_dset.inputs.get_value()
+
+    # data is normalized
+    assert_array_almost_equal(norm_data[:, [1, 2]].mean(), 0)
+    assert_array_almost_equal(norm_data[:, [1, 2]].std(), 1)
+
+    # non-normalized data is non-normalized
+    assert_array_almost_equal(orig_data[:, 0], norm_data[:, 0])
+
+    # reverted normalization is reverted
+    denorm_data = norm.reverse_preprocessing(norm_dset).inputs.get_value()
+    assert_array_almost_equal(orig_data, denorm_data)
