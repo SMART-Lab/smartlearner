@@ -32,7 +32,7 @@ class GradientNoise(DirectionModifier):
         self._eta = eta ** 0.5
         self._gamma = 0.55 / 2
 
-        self.t = sharedX(0, name='gradient_noise_t')
+        self.t = sharedX(1, name='gradient_noise_t')
         self.std = sharedX(self._eta / 1 ** self._gamma, name='gradient_noise_std')
 
     def _get_updates(self):

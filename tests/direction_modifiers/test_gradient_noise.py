@@ -70,7 +70,7 @@ class TestGradientNoise(unittest.TestCase):
 
     def test_behaviour(self):
         t_per_update = np.array(self.logger.get_variable_history(0)).flatten()
-        expected_t_per_update = range(self.max_epoch)
+        expected_t_per_update = np.arange(1, self.max_epoch+1)
         assert_array_equal(t_per_update, expected_t_per_update)
 
         # Directions should not be the same as gradients at first.
@@ -78,8 +78,8 @@ class TestGradientNoise(unittest.TestCase):
             assert_true(not np.allclose(abs(self.logger[i][2]), abs(self.logger[i][3])))
 
         std_per_update = np.array(self.logger.get_variable_history(1)).flatten()
-        # std is expected to decay at each update ???
-        assert_true(np.all(np.diff(std_per_update) > 0))
+        # std is expected to decay at each update.
+        assert_true(np.all(np.diff(std_per_update) < 0))
 
     def test_save_load(self):
         # Save training and resume it.
