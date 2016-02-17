@@ -1,3 +1,8 @@
+from os.path import join as pjoin
+
+from .utils import save_dict_to_json_file, load_dict_from_json_file
+
+
 class Status(object):
     def __init__(self, trainer=None, starting_epoch=0, starting_update=0):
         self.current_epoch = starting_epoch
@@ -27,3 +32,23 @@ class Status(object):
                 '  done = {!r}\n' +\
                 '  extra = {!r}\n').format(self.current_epoch, self.current_update, self.current_update_in_epoch,
                                            self.trainer, self.training_time, self.done, self.extra)
+
+    def save(self, savedir="./"):
+        state = {"version": 1,
+                 "current_epoch": self.current_epoch,
+                 "current_update": self.current_update,
+                 "current_update_in_epoch": self.current_update_in_epoch,
+                 "training_time": self.training_time,
+                 "done": self.done,
+                 "extra": self.extra,
+                 }
+        save_dict_to_json_file(pjoin(savedir, 'status.json'), state)
+
+    def load(self, loaddir="./"):
+        state = load_dict_from_json_file(pjoin(loaddir, 'status.json'))
+        self.current_epoch = state["current_epoch"]
+        self.current_update = state["current_update"]
+        self.current_update_in_epoch = state["current_update_in_epoch"]
+        self.training_time = state["training_time"]
+        self.done = state["done"]
+        self.extra = state["extra"]

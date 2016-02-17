@@ -3,6 +3,11 @@ import os
 import numpy as np
 import theano
 import theano.tensor as T
+import tempfile
+from os.path import join as pjoin
+from functools import partial
+
+from numpy.testing import assert_equal, assert_almost_equal, assert_array_equal, assert_array_almost_equal
 
 from smartlearner import Trainer, Dataset, Model
 from smartlearner import tasks
@@ -10,7 +15,8 @@ from smartlearner import views
 from smartlearner import stopping_criteria
 import smartlearner.initializers as initer
 from smartlearner.utils import sharedX
-from smartlearner.optimizers import SGD
+from smartlearner import utils
+from smartlearner.optimizers import SGD, AdaGrad, Adam
 from smartlearner.direction_modifiers import ConstantLearningRate
 from smartlearner.batch_schedulers import FullBatchScheduler, MiniBatchScheduler
 from smartlearner.losses.classification_losses import NegativeLogLikelihood as NLL
@@ -88,32 +94,52 @@ class Perceptron(Model):
         return T.argmax(probs, axis=1, keepdims=True)
 
     def save(self, path):
-        pass
+        savedir = utils.create_folder(pjoin(path, "model"))
+        hyperparameters = {'input_size': self.input_size,
+                           'output_size': self.output_size}
+        utils.save_dict_to_json_file(pjoin(savedir, "meta.json"), {"name": self.__class__.__name__})
+        utils.save_dict_to_json_file(pjoin(savedir, "hyperparams.json"), hyperparameters)
+
+        params = {param.name: param.get_value() for param in self.parameters}
+        np.savez(pjoin(savedir, "params.npz"), **params)
+
+    def load(self, path):
+        loaddir = pjoin(path, "model")
+        parameters = np.load(pjoin(loaddir, "params.npz"))
+        for param in self.parameters:
+            param.set_value(parameters[param.name])
 
     @classmethod
-    def load(cls, path):
-        pass
+    def create(cls, path):
+        loaddir = pjoin(path, "model")
+        meta = utils.load_dict_from_json_file(pjoin(loaddir, "meta.json"))
+        assert meta['name'] == cls.__name__
+
+        hyperparams = utils.load_dict_from_json_file(pjoin(loaddir, "hyperparams.json"))
+        model = cls(**hyperparams)
+        model.load(path)
+        return model
 
 
 def test_simple_perceptron():
-    #Loading dataset
+    # Loading dataset
     trainset, validset, testset = load_mnist()
 
-    #Creating model
+    # Creating model
     nb_classes = 10
     model = Perceptron(trainset.input_size, nb_classes)
     model.initialize()  # By default, uniform initialization.
 
-    #Building optimizer
+    # Building optimizer
     loss = NLL(model, trainset)
     optimizer = SGD(loss=loss)
     optimizer.append_direction_modifier(ConstantLearningRate(0.1))
 
-    # Train for 10 epochs
+    # Use mini batches of 100 examples.
     batch_scheduler = MiniBatchScheduler(trainset, 100)
 
+    # Build trainer and add some tasks.
     trainer = Trainer(optimizer, batch_scheduler)
-    trainer.append_task(stopping_criteria.MaxEpochStopping(10))
 
     # Print time for one epoch
     trainer.append_task(tasks.PrintEpochDuration())
@@ -137,6 +163,127 @@ def test_simple_perceptron():
     trainer.append_task(tasks.Print("Validset - Classif error: {0:.1%} ± {1:.1%}",
                                     classif_error.mean, classif_error.stderror))
 
+    # Train for 10 epochs (stopping criteria should be added at the end).
+    trainer.append_task(stopping_criteria.MaxEpochStopping(10))
     trainer.train()
 
 
+def test_resume_experiment():
+    # Loading dataset
+    trainset, validset, testset = load_mnist()
+    nb_classes = 10
+
+    # Nested function to build a trainer.
+    def _build_trainer(nb_epochs, optimizer_cls):
+        print("Will build a trainer is going to train a Perceptron for {0} epochs.".format(nb_epochs))
+
+        print("Building model")
+        model = Perceptron(trainset.input_size, nb_classes)
+        model.initialize(initer.UniformInitializer(random_seed=1234))
+
+        print("Building optimizer")
+        loss = NLL(model, trainset)
+        optimizer = optimizer_cls(loss=loss)
+        print("Optimizer: {}".format(type(optimizer).__name__))
+        #optimizer = SGD(loss=loss)
+        #optimizer.append_direction_modifier(ConstantLearningRate(0.1))
+
+        # Use mini batches of 100 examples.
+        batch_scheduler = MiniBatchScheduler(trainset, 100)
+
+        print("Building trainer")
+        trainer = Trainer(optimizer, batch_scheduler)
+
+        # Print time for one epoch
+        trainer.append_task(tasks.PrintEpochDuration())
+        trainer.append_task(tasks.PrintTrainingDuration())
+
+        # Log training error
+        loss_monitor = views.MonitorVariable(loss.loss)
+        avg_loss = tasks.AveragePerEpoch(loss_monitor)
+
+        # Print NLL mean/stderror.
+        nll = views.LossView(loss=NLL(model, validset), batch_scheduler=FullBatchScheduler(validset))
+        logger = tasks.Logger(loss_monitor, avg_loss, nll.mean)
+        trainer.append_task(logger, avg_loss)
+
+        # Train for `nb_epochs` epochs (stopping criteria should be added at the end).
+        trainer.append_task(stopping_criteria.MaxEpochStopping(nb_epochs))
+
+        return trainer, nll, logger
+
+    for optimizer_cls in [SGD, partial(AdaGrad, lr=0.1), Adam]:
+        trainer1, nll1, logger1 = _build_trainer(nb_epochs=10, optimizer_cls=optimizer_cls)
+        print("Compiling training graph")
+        trainer1.build_theano_graph()
+
+        print("Training")
+        trainer1.train()
+
+        trainer2a, nll2a, logger2a = _build_trainer(5, optimizer_cls)
+        print("Compiling training graph")
+        trainer2a.build_theano_graph()
+
+        print("Training")
+        trainer2a.train()
+
+        # Save model halfway during training and resume it.
+        with tempfile.TemporaryDirectory() as experiment_dir:
+            print("Saving")
+            # Save current state of the model (i.e. after 5 epochs).
+            trainer2a.save(experiment_dir)
+
+            print("Loading")
+            # Load previous state from which training will resume.
+            trainer2b, nll2b, logger2b = _build_trainer(10, optimizer_cls)
+            trainer2b.load(experiment_dir)
+
+            # Check we correctly reloaded the model.
+            assert_equal(len(trainer2a._optimizer.loss.model.parameters),
+                         len(trainer2b._optimizer.loss.model.parameters))
+            for param1, param2 in zip(trainer2a._optimizer.loss.model.parameters,
+                                      trainer2b._optimizer.loss.model.parameters):
+                assert_array_equal(param1.get_value(), param2.get_value(), err_msg=param1.name)
+
+            # Check that the `status` state after loading matches the one saved.
+            assert_equal(trainer2b.status.current_epoch, trainer2a.status.current_epoch)
+            assert_equal(trainer2b.status.current_update, trainer2a.status.current_update)
+            assert_equal(trainer2b.status.current_update_in_epoch, trainer2a.status.current_update_in_epoch)
+            assert_equal(trainer2b.status.training_time, trainer2a.status.training_time)
+            assert_equal(trainer2b.status.done, trainer2a.status.done)
+            assert_equal(trainer2b.status.extra, trainer2a.status.extra)
+
+            # Check that the `batch_scheduler` state after loading matches the one saved.
+            assert_equal(trainer2b._batch_scheduler.batch_size, trainer2a._batch_scheduler.batch_size)
+            assert_equal(trainer2b._batch_scheduler.shared_batch_count.get_value(),
+                         trainer2a._batch_scheduler.shared_batch_count.get_value())
+
+            # Check that the `optimizer` state after loading matches the one saved.
+            assert_equal(trainer2a._optimizer.getstate(), trainer2b._optimizer.getstate())
+
+        print("Compiling training graph")
+        trainer2b.build_theano_graph()
+
+        print("Training")
+        trainer2b.train()
+
+        # Check we correctly resumed training.
+        assert_equal(len(trainer1._optimizer.loss.model.parameters),
+                     len(trainer2b._optimizer.loss.model.parameters))
+        for param1, param2 in zip(trainer1._optimizer.loss.model.parameters,
+                                  trainer2b._optimizer.loss.model.parameters):
+
+            # I tested it, they are exactly equal when using float64.
+            assert_array_almost_equal(param1.get_value(), param2.get_value(), err_msg=param1.name)
+
+        # I tested it, they are exactly equal when using float64.
+        assert_array_almost_equal(nll1.mean.view(trainer1.status), nll2b.mean.view(trainer2b.status))
+        assert_array_almost_equal(nll1.stderror.view(trainer1.status), nll2b.stderror.view(trainer2b.status))
+
+        # I tested it, they are exactly equal when using float64 on CPU.
+        assert_array_almost_equal(logger1.get_variable_history(0), logger2a.get_variable_history(0)+logger2b.get_variable_history(0))
+        assert_array_almost_equal(logger1.get_variable_history(1), logger2a.get_variable_history(1)+logger2b.get_variable_history(1))
+
+        # Check that concatenating `logger2a` with `logger2b` is the same as `logger1`.
+        for i in range(len(logger1[0])):
+            assert_equal(logger2a._history[i] + logger2b._history[i], logger1._history[i])

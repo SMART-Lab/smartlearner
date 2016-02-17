@@ -1,4 +1,7 @@
+import numpy as np
 from collections import OrderedDict
+from os.path import join as pjoin
+from .. import utils
 
 from abc import ABCMeta, abstractmethod
 
@@ -27,6 +30,16 @@ class Optimizer(object):
     @abstractmethod
     def _get_updates(self):
         raise NotImplementedError("Subclass of 'Optimizer' must implement private property '_updates'.")
+
+    @abstractmethod
+    def getstate(self):
+        """ Returns the state of the optimizer. """
+        raise NotImplementedError("Subclass of 'Optimizer' must implement 'getstate()'.")
+
+    @abstractmethod
+    def setstate(self, state):
+        """ Restores the optimizer to a given state. """
+        raise NotImplementedError("Subclass of 'Optimizer' must implement 'setstate(state)'.")
 
     @property
     def directions(self):
@@ -79,3 +92,32 @@ class Optimizer(object):
             updates.update(modifier.updates)
 
         return updates
+
+    def save(self, path):
+        self.loss.save(path)
+        state = self.getstate()
+        state["__name__"] = type(self).__name__
+        np.savez(pjoin(path, 'optimizer.npz'), **state)
+
+        direction_modifiers_savedir = utils.create_folder(pjoin(path, 'direction_modifiers'))
+        for i, direction_modifier in enumerate(self._direction_modifiers):
+            direction_modifier_savedir = utils.create_folder(pjoin(direction_modifiers_savedir, 'direction_modifier_{}'.format(i)))
+            direction_modifier.save(direction_modifier_savedir)
+
+        param_modifiers_savedir = utils.create_folder(pjoin(path, 'param_modifiers'))
+        for i, param_modifier in enumerate(self._param_modifiers):
+            param_modifier_savedir = utils.create_folder(pjoin(param_modifiers_savedir, 'param_modifier_{}'.format(i)))
+            param_modifier.save(param_modifier_savedir)
+
+    def load(self, path):
+        self.loss.load(path)
+        state = np.load(pjoin(path, 'optimizer.npz'))
+        self.setstate(state)
+
+        direction_modifiers_loaddir = pjoin(path, 'direction_modifiers')
+        for i, direction_modifier in enumerate(self._direction_modifiers):
+            direction_modifier.load(pjoin(direction_modifiers_loaddir, 'direction_modifier_{}'.format(i)))
+
+        param_modifiers_loaddir = pjoin(path, 'param_modifiers')
+        for i, param_modifier in enumerate(self._param_modifiers):
+            param_modifier.load(pjoin(param_modifiers_loaddir, 'param_modifier_{}'.format(i)))

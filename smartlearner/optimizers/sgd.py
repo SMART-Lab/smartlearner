@@ -17,3 +17,10 @@ class SGD(Optimizer):
             directions[param] = -gradient
 
         return directions
+
+    def getstate(self):
+        state = {"version": 1}
+        return state
+
+    def setstate(self, state):
+        pass

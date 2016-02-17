@@ -7,6 +7,15 @@ class NegativeLogLikelihood(Loss):
     def _get_updates(self):
         return {}  # There is no updates for NegativeLogLikelihood.
 
+    def getstate(self):
+        state = {"version": 1,
+                 "__name__": type(self).__name__}
+
+        return state
+
+    def setstate(self, state):
+        pass
+
     def _compute_losses(self, model_output):
         nll = -T.log(model_output)
         indices = T.cast(self.dataset.symb_targets[:, 0], dtype="int32")  # Targets are floats.
@@ -17,6 +26,15 @@ class NegativeLogLikelihood(Loss):
 class CategoricalCrossEntropy(Loss):
     def _get_updates(self):
         return {}  # There is no updates for CategoricalCrossEntropy.
+
+    def getstate(self):
+        state = {"version": 1,
+                 "__name__": type(self).__name__}
+
+        return state
+
+    def setstate(self, state):
+        pass
 
     def _compute_losses(self, model_output):
         return T.nnet.categorical_crossentropy(model_output, self.dataset.symb_targets)
@@ -30,6 +48,15 @@ class ClassificationError(Loss):
     """
     def _get_updates(self):
         return {}  # There is no updates for ClassificationError.
+
+    def getstate(self):
+        state = {"version": 1,
+                 "__name__": type(self).__name__}
+
+        return state
+
+    def setstate(self, state):
+        pass
 
     def _compute_losses(self, model_output):
         predictions = T.argmax(model_output, axis=1, keepdims=True)

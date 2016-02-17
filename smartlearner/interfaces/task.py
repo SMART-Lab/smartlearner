@@ -24,6 +24,12 @@ class Task(object):
     def finished(self, status):
         pass
 
+    def save(self, savedir="./"):
+        pass
+
+    def load(self, loaddir="./"):
+        pass
+
 
 class RecurrentTask(Task):
     __metaclass__ = ABCMeta

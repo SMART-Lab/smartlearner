@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='smartlearner',
-    version='0.0.1',
+    version='0.1.0',
     author='Marc-Alexandre Côté, Adam Salvail, Mathieu Germain',
     author_email='smart-udes-dev@googlegroups.com',
     url='https://github.com/SMART-Lab/smartpy',

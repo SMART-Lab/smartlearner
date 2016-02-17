@@ -1,14 +1,6 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 
-class abstractclassmethod(classmethod):
-    __isabstractmethod__ = True
-
-    def __init__(self, callable):
-        callable.__isabstractmethod__ = True
-        super(abstractclassmethod, self).__init__(callable)
-
-
 class Model(object):
     __metaclass__ = ABCMeta
 
@@ -30,8 +22,10 @@ class Model(object):
 
     @abstractmethod
     def save(self, path):
+        """ Saves model information to disk. """
         raise NotImplementedError("Subclass of 'Model' must implement 'save(path)'.")
 
-    @abstractclassmethod
+    @abstractmethod
     def load(self, path):
+        """ Loads model information from disk. """
         raise NotImplementedError("Subclass of 'Model' must implement 'load(path)'.")

@@ -1,8 +1,5 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 
-import numpy as np
-import theano
-
 
 class BatchScheduler(object):
     __metaclass__ = ABCMeta
@@ -25,3 +22,9 @@ class BatchScheduler(object):
     @abstractmethod
     def __iter__(self):
         raise NotImplementedError("Subclass of 'BatchScheduler' must implement '__iter__()'.")
+
+    def save(self, path):
+        pass
+
+    def load(self, path):
+        pass

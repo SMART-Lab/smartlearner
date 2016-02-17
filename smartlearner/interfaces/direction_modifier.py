@@ -20,6 +20,12 @@ class DirectionModifier(object):
     def apply(self, directions):
         raise NotImplementedError("Subclass of 'DirectionModifier' must implement 'apply(directions)'.")
 
+    def save(self, path):
+        pass
+
+    def load(self, path):
+        pass
+
 
 class ParamModifier(object):
     __metaclass__ = ABCMeta
@@ -39,3 +45,9 @@ class ParamModifier(object):
     @abstractmethod
     def apply(self, params):
         raise NotImplementedError("Subclass of 'ParamModifier' must implement 'apply(params)'.")
+
+    def save(self, path):
+        pass
+
+    def load(self, path):
+        pass
