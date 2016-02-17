@@ -5,6 +5,24 @@ from .interfaces.preprocess import Preprocess
 
 class NormalizeFeature(Preprocess):
     def __init__(self, dataset, feature_selector, mu=None, sigma=None, parent_preprocess=None):
+        """ Transform given features to their Z-score
+
+        Parameters
+        ----------
+        dataset: Dataset
+        feature_selector: [int] or slice object
+            This is passed to the dataset to specify which features this preprocessor is
+            applied on.
+        mu: float, optional
+            This is the mean used to normalize the features. If it is not provided, the
+            mean of all selected features will be used.
+        sigma: float, optional
+            This is the standard deviation used to normalize the features. If it is not <
+            provided, the standard deviation of all selected features will be used.
+        parent_preprocess: Preprocess
+            The previously applied preprocessor. Used to chain preprocessors.
+
+        """
         super().__init__(parent_preprocess)
         self.feature_selector = feature_selector
         self.mu = self._get_values(dataset)[self.feature_selector].mean() if mu is None else mu
