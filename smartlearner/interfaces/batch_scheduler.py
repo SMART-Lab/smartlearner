@@ -23,10 +23,8 @@ class BatchScheduler(object):
     def __iter__(self):
         raise NotImplementedError("Subclass of 'BatchScheduler' must implement '__iter__()'.")
 
-    @abstractmethod
-    def save(self, savedir="./"):
-        raise NotImplementedError("Subclass of 'BatchScheduler' must implement 'save(savedir)'.")
+    def save(self, path):
+        pass
 
-    @abstractmethod
-    def load(self, loaddir="./"):
-        raise NotImplementedError("Subclass of 'BatchScheduler' must implement 'load(loaddir)'.")
+    def load(self, path):
+        pass

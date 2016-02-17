@@ -48,15 +48,15 @@ class MiniBatchScheduler(BatchScheduler):
             self.shared_batch_count.set_value(batch_count)
             yield batch_count + 1
 
-    def save(self, savedir="./"):
+    def save(self, path="./"):
         state = {"version": 1,
                  "batch_size": self.batch_size,
                  "shared_batch_count": self.shared_batch_count.get_value()}
 
-        np.savez(pjoin(savedir, 'mini_batch_scheduler.npz'), **state)
+        np.savez(pjoin(path, 'mini_batch_scheduler.npz'), **state)
 
-    def load(self, loaddir="./"):
-        state = np.load(pjoin(loaddir, 'mini_batch_scheduler.npz'))
+    def load(self, path="./"):
+        state = np.load(pjoin(path, 'mini_batch_scheduler.npz'))
         self.batch_size = state["batch_size"]
         self.shared_batch_count.set_value(state["shared_batch_count"])
 
