@@ -15,9 +15,14 @@ class Loss(object):
         self.dataset = dataset
         self.consider_constant = []  # Part of the computational graph to be considered as a constant.
         self._tasks = []
+        self._gradient_modifiers = []
         self._gradients = None
         self._loss = None
         self._losses = None
+        self._gradient_modifiers_updates = {}
+
+    def append_gradient_modifier(self, gradient_modifier):
+        self._gradient_modifiers.append(gradient_modifier)
 
     @abstractmethod
     def _get_updates(self):
@@ -83,14 +88,29 @@ class Loss(object):
         updates = OrderedDict()
         updates.update(self.model.updates)
         updates.update(self._get_updates())
+        updates.update(self._gradient_modifiers_updates)
         return updates
 
     def _get_gradients(self):
         gparams = T.grad(cost=self.loss,
                          wrt=self.model.parameters,
                          consider_constant=self.consider_constant)
-        self._gradients = OrderedDict(zip(self.model.parameters, gparams))
-        return self.gradients
+        self.orig_gradients = OrderedDict(zip(self.model.parameters, gparams))
+
+        # Apply gradients modifiers and gather updates from these modifiers.
+        gradients = self.orig_gradients.copy()
+        self._gradient_modifiers_updates = self._apply_modifiers(self._gradient_modifiers, gradients)
+        return gradients
+
+    def _apply_modifiers(self, list_modifiers, objects_to_modify):
+        # TODO: this is a copy-paste of the method in the class Optimizer.
+        updates = OrderedDict()
+        for modifier in list_modifiers:
+            modified_objects = modifier.apply(objects_to_modify)
+            objects_to_modify.update(modified_objects)
+            updates.update(modifier.updates)
+
+        return updates
 
     def save(self, path):
         self.model.save(path)
