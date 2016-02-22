@@ -1,15 +1,11 @@
-import numpy as np
-from os.path import join as pjoin
-
-
 from collections import OrderedDict
 import theano.tensor as T
 
-from . import SGD
+from ..interfaces import Optimizer
 from ..utils import sharedX
 
 
-class AdaGrad(SGD):
+class AdaGrad(Optimizer):
     """ Implements the AdaGrad optimizer [Duchi11]_.
 
     .. [Duchi11] Duchi, J., Hazan, E., & Singer, Y., "Adaptive Subgradient
@@ -41,21 +37,21 @@ class AdaGrad(SGD):
         """ Produces descending directions. """
         directions = OrderedDict()
 
-        for i, (param, direction) in enumerate(super()._get_directions().items()):
+        for i, (param, gradient) in enumerate(self.loss.gradients.items()):
             # sum_squared_grad := \sum g_t^2
             param_name = param.name if param.name is not None else str(i)
             sum_squared_grad = sharedX(param.get_value() * 0., name='sum_squared_grad_' + param_name)
             self.parameters[sum_squared_grad.name] = sum_squared_grad
 
             # Accumulate gradient
-            new_sum_squared_grad = sum_squared_grad + T.sqr(direction)
+            new_sum_squared_grad = sum_squared_grad + T.sqr(gradient)
 
             # Compute update
             root_sum_squared = T.sqrt(new_sum_squared_grad + self.eps)
 
             # Apply update
             self._updates[sum_squared_grad] = new_sum_squared_grad
-            directions[param] = (self.lr/root_sum_squared) * direction
+            directions[param] = -(self.lr/root_sum_squared) * gradient
 
         return directions
 
