@@ -26,12 +26,12 @@ class Loss(object):
     @abstractmethod
     def getstate(self):
         """ Returns the state of the loss. """
-        raise NotImplementedError("Subclass of 'Loss' must implement 'getstate()'.")
+        return {}
 
     @abstractmethod
     def setstate(self, state):
         """ Restores the loss to a given state. """
-        raise NotImplementedError("Subclass of 'Loss' must implement 'setstate(state)'.")
+        pass
 
     def _compute_losses(self, model_output):
         class_name = self.__class__.__name__
