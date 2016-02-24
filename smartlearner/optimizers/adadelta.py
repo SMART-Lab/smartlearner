@@ -22,8 +22,8 @@ class Adadelta(Optimizer):
         epsilon : float, optional
             Used to prevent a division by zero in early iterations.
 
-        Refrences
-        ---------
+        References
+        ----------
         .. [Zeiler12] Matthew D. Zeiler "AdaDelta: An Adaptive Learning Rate Method",
                       http://arxiv.org/abs/1212.5701, 2012
         """

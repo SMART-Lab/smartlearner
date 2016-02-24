@@ -24,8 +24,8 @@ class RMSProp(Optimizer):
         epsilon : float, optional
             Used to prevent a division by zero in early iterations.
 
-        Refrences
-        ---------
+        References
+        ----------
         .. [Tieleman12] Tieleman, T. and Hinton, G. "Lecture 6.5 - rmsprop"
                         Coursera: Neural Networks for Machine Learning, 2012
         """
