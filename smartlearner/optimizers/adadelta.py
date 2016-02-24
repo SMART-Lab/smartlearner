@@ -1,6 +1,6 @@
+import numpy as np
 from collections import OrderedDict
 
-import theano
 import theano.tensor as T
 
 from ..interfaces import Optimizer
@@ -48,11 +48,11 @@ class Adadelta(Optimizer):
         for i, (param, gradient) in enumerate(self.loss.gradients.items()):
             # mean_squared_grad := E[g^2]_{t-1}
             param_name = param.name if param.name is not None else str(i)
-            mean_squared_grad = sharedX(param.get_value() * 0., name='mean_squared_grad_' + param_name)
+            mean_squared_grad = sharedX(np.zeros_like(param.get_value()), name='mean_squared_grad_' + param_name)
             self.mean_squared_grads.append(mean_squared_grad)
             # mean_squared_dx := E[(\Delta x)^2]_{t-1}
             param_name = param.name if param.name is not None else str(i)
-            mean_squared_dx = sharedX(param.get_value() * 0., name='mean_squared_dx_' + param_name)
+            mean_squared_dx = sharedX(np.zeros_like(param.get_value()), name='mean_squared_dx_' + param_name)
             self.mean_squared_dxs.append(mean_squared_dx)
 
             # Accumulate gradient

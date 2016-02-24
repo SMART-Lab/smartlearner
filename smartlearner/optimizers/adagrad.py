@@ -1,3 +1,4 @@
+import numpy as np
 from collections import OrderedDict
 import theano.tensor as T
 
@@ -40,7 +41,7 @@ class AdaGrad(Optimizer):
         for i, (param, gradient) in enumerate(self.loss.gradients.items()):
             # sum_squared_grad := \sum g_t^2
             param_name = param.name if param.name is not None else str(i)
-            sum_squared_grad = sharedX(param.get_value() * 0., name='sum_squared_grad_' + param_name)
+            sum_squared_grad = sharedX(np.zeros_like(param.get_value()), name='sum_squared_grad_' + param_name)
             self.parameters[sum_squared_grad.name] = sum_squared_grad
 
             # Accumulate gradient

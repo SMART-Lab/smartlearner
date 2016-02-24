@@ -1,3 +1,4 @@
+import numpy as np
 from collections import OrderedDict
 
 import theano
@@ -50,7 +51,7 @@ class RMSProp(Optimizer):
         for i, (param, gradient) in enumerate(self.loss.gradients.items()):
             # mean_squared_grad := \sum dc * g_{t-1}^2 + (1-dc) g_t^2
             param_name = param.name if param.name is not None else str(i)
-            mean_squared_grad = sharedX(param.get_value() * 0., name='mean_squared_grad_' + param_name)
+            mean_squared_grad = sharedX(np.zeros_like(param.get_value()), name='mean_squared_grad_' + param_name)
             self.mean_squared_grads.append(mean_squared_grad)
 
             # Compute moving average of the squared gradient
