@@ -16,7 +16,7 @@ from smartlearner import stopping_criteria
 import smartlearner.initializers as initer
 from smartlearner.utils import sharedX
 from smartlearner import utils
-from smartlearner.optimizers import SGD, AdaGrad, Adam
+from smartlearner.optimizers import SGD, AdaGrad, Adam, RMSProp, Adadelta
 from smartlearner.direction_modifiers import ConstantLearningRate
 from smartlearner.batch_schedulers import FullBatchScheduler, MiniBatchScheduler
 from smartlearner.losses.classification_losses import NegativeLogLikelihood as NLL
@@ -212,7 +212,8 @@ def test_resume_experiment():
 
         return trainer, nll, logger
 
-    for optimizer_cls in [SGD, partial(AdaGrad, lr=0.1), Adam]:
+    for optimizer_cls in [SGD, Adam, Adadelta,
+                          partial(AdaGrad, lr=0.1), partial(RMSProp, lr=1)]:
         trainer1, nll1, logger1 = _build_trainer(nb_epochs=10, optimizer_cls=optimizer_cls)
         print("Compiling training graph")
         trainer1.build_theano_graph()
