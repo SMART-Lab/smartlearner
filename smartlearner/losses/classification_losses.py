@@ -60,4 +60,4 @@ class ClassificationError(Loss):
 
     def _compute_losses(self, model_output):
         predictions = T.argmax(model_output, axis=1, keepdims=True)
-        return T.neq(predictions, self.dataset.symb_targets)
+        return T.neq(predictions, self.dataset.symb_targets)[:, 0]
