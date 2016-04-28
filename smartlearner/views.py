@@ -25,13 +25,15 @@ class LossView(View):
 
         self.batch_scheduler = batch_scheduler
 
+        losses = loss.losses
+
         # Gather updates from the optimizer and the batch scheduler.
         graph_updates = OrderedDict()
         graph_updates.update(loss.updates)
         graph_updates.update(batch_scheduler.updates)
 
         self.compute_loss = theano.function([],
-                                            loss.losses,
+                                            losses,
                                             updates=graph_updates,
                                             givens=batch_scheduler.givens,
                                             name="compute_loss")
