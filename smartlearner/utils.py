@@ -28,7 +28,7 @@ class NumpyEncoder(json.JSONEncoder):
 
 def json_numpy_obj_hook(dct):
     if isinstance(dct, dict) and '__ndarray__' in dct:
-        return np.array(dct['__ndarray__'])
+        return np.array(dct['__ndarray__'], dtype=theano.config.floatX)
 
     return dct
 
