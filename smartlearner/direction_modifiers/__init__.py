@@ -1,3 +1,4 @@
 from .decreasing_learning_rate import DecreasingLearningRate
 from .constant_learning_rate import ConstantLearningRate
 from .gradient_noise import GradientNoise
+from .direction_clipping import DirectionClipping
