@@ -10,13 +10,16 @@ from .interfaces import View
 class ItemGetter(View):
     def __init__(self, view, attribute):
         """ Retrieves `attribute` from a `view` which return an indexable object. """
-        super(ItemGetter, self).__init__()
+        super().__init__()
         self.view_obj = view
         self.attribute = attribute
 
     def update(self, status):
         infos = self.view_obj.view(status)
         return infos[self.attribute]
+
+    def __getitem__(self, idx):
+        return ItemGetter(self, attribute=idx)
 
 
 class LossView(View):
@@ -73,6 +76,15 @@ class MonitorVariable(View):
         var_shared = theano.shared(np.array(0, dtype=var.dtype, ndmin=var.ndim), name=name)
         self.updates[var_shared] = var
         return var_shared
+
+
+class CallbackView(View):
+    def __init__(self, callback):
+        super().__init__()
+        self.callback = callback
+
+    def update(self, status):
+        return self.callback(self, status)
 
 
 class ClassificationError(View):

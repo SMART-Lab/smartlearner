@@ -138,6 +138,15 @@ class Logger(RecurrentTask):
     def _get_variable_history(self, index):
         return self._history[index]
 
+    def save(self, path):
+        state = {"version": 1,
+                 "history": self._history}
+        utils.save_dict_to_json_file(pjoin(path, "logger.json"), state)
+
+    def load(self, path):
+        state = utils.load_dict_from_json_file(pjoin(path, "logger.json"))
+        self._history = state["history"]
+
 
 class Accumulator(Logger):
     def _log(self, values_to_log):
