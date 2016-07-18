@@ -52,8 +52,10 @@ class Trainer(object):
         self._batch_scheduler.save(savedir)
 
         tasks_dir = utils.create_folder(pjoin(savedir, 'tasks'))
-        for task in self._tasks:
-            task.save(tasks_dir)
+        for i, task in enumerate(self._tasks):
+            # Save each task in its own folder.
+            task_dir = utils.create_folder(pjoin(tasks_dir, 'task_{}'.format(i)))
+            task.save(task_dir)
 
     def load(self, path):
         loaddir = pjoin(path, "training")
@@ -62,8 +64,9 @@ class Trainer(object):
         self._batch_scheduler.load(loaddir)
 
         tasks_dir = pjoin(loaddir, 'tasks')
-        for task in self._tasks:
-            task.load(tasks_dir)
+        for i, task in enumerate(self._tasks):
+            task_dir = pjoin(tasks_dir, 'task_{}'.format(i))
+            task.load(task_dir)
 
     def _pre_learning(self):
         if self._learn is None:

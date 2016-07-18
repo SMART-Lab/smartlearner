@@ -141,10 +141,12 @@ class Logger(RecurrentTask):
     def save(self, path):
         state = {"version": 1,
                  "history": self._history}
-        utils.save_dict_to_json_file(pjoin(path, "logger.json"), state)
+        filename = type(self).__name__ + ".json"
+        utils.save_dict_to_json_file(pjoin(path, filename), state)
 
     def load(self, path):
-        state = utils.load_dict_from_json_file(pjoin(path, "logger.json"))
+        filename = type(self).__name__ + ".json"
+        state = utils.load_dict_from_json_file(pjoin(path, filename))
         self._history = state["history"]
 
 

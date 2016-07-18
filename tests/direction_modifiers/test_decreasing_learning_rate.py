@@ -95,9 +95,7 @@ class TestDecreasingLearningRate(unittest.TestCase):
             trainer2.load(experiment_dir)
             trainer2.train()
 
-        # Check that concatenating `logger1` with `logger2` is the same as `self.logger`.
-        learning_rate_per_update_part1 = np.array(logger1.get_variable_history(0))[:, :, 0].flatten()
-        learning_rate_per_update_part2 = np.array(logger2.get_variable_history(0))[:, :, 0].flatten()
+        # Check that `logger2` is the same as `self.logger`.
+        learning_rate_per_update2 = np.array(logger2.get_variable_history(0))[:, :, 0].flatten()
         expected_learning_rate_per_update = np.array(self.logger.get_variable_history(0))[:, :, 0].flatten()
-        assert_array_equal(np.r_[learning_rate_per_update_part1, learning_rate_per_update_part2],
-                           expected_learning_rate_per_update)
+        assert_array_equal(learning_rate_per_update2, expected_learning_rate_per_update)

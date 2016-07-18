@@ -11,8 +11,12 @@ class View(object):
         self.last_update = -1
         self.last_epoch = -1
 
-    def view(self, status):
-        if self.last_update != status.current_update or self.last_epoch != status.current_epoch:
+    def view(self, status=None):
+        if status is None:
+            # Force recomputation of the value.
+            self.value = self.update(status)
+
+        elif self.last_update != status.current_update or self.last_epoch != status.current_epoch:
             self.value = self.update(status)
             self.last_update = status.current_update
             self.last_epoch = status.current_epoch
@@ -20,7 +24,7 @@ class View(object):
         return self.value
 
     @abstractmethod
-    def update(self, status):
+    def update(self, status=None):
         raise NotImplementedError("Subclass of 'View' must implement 'update(status)'.")
 
     def __str__(self):

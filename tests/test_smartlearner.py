@@ -274,17 +274,17 @@ def test_resume_experiment():
         for param1, param2 in zip(trainer1._optimizer.loss.model.parameters,
                                   trainer2b._optimizer.loss.model.parameters):
 
-            # I tested it, they are exactly equal when using float64.
+            # Using `assert_array_*almost*_equal` because of float32. However, this is not needed in float64.
             assert_array_almost_equal(param1.get_value(), param2.get_value(), err_msg=param1.name)
 
-        # I tested it, they are exactly equal when using float64.
+        # Using `assert_array_*almost*_equal` because of float32. However, this is not needed in float64.
         assert_array_almost_equal(nll1.mean.view(trainer1.status), nll2b.mean.view(trainer2b.status))
         assert_array_almost_equal(nll1.stderror.view(trainer1.status), nll2b.stderror.view(trainer2b.status))
 
-        # I tested it, they are exactly equal when using float64 on CPU.
-        assert_array_almost_equal(logger1.get_variable_history(0), logger2a.get_variable_history(0)+logger2b.get_variable_history(0))
-        assert_array_almost_equal(logger1.get_variable_history(1), logger2a.get_variable_history(1)+logger2b.get_variable_history(1))
+        # Using `assert_array_*almost*_equal` because of float32. However, this is not needed in float64.
+        assert_array_almost_equal(logger1.get_variable_history(0), logger2b.get_variable_history(0))
+        assert_array_almost_equal(logger1.get_variable_history(1), logger2b.get_variable_history(1))
 
-        # Check that concatenating `logger2a` with `logger2b` is the same as `logger1`.
+        # Check that the _history of `logger2b` is the same as the one in `logger1`.
         for i in range(len(logger1[0])):
-            assert_equal(logger2a._history[i] + logger2b._history[i], logger1._history[i])
+            assert_equal(logger2b._history[i], logger1._history[i])
