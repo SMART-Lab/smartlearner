@@ -117,23 +117,8 @@ class TestGradientNoise(unittest.TestCase):
             trainer2.load(experiment_dir)
             trainer2.train()
 
-        # Check that concatenating `logger1` with `logger2` is the same as `self.logger`.
-        learning_rate_per_update_part1 = np.array(logger1.get_variable_history(0)).flatten()
-        learning_rate_per_update_part2 = np.array(logger2.get_variable_history(0)).flatten()
-        expected_learning_rate_per_update = np.array(self.logger.get_variable_history(0)).flatten()
-        assert_array_equal(np.r_[learning_rate_per_update_part1, learning_rate_per_update_part2],
-                           expected_learning_rate_per_update)
-
-        # Check that concatenating `logger1` with `logger2` is the same as `self.logger`.
-        learning_rate_per_update_part1 = np.array(logger1.get_variable_history(1)).flatten()
-        learning_rate_per_update_part2 = np.array(logger2.get_variable_history(1)).flatten()
-        expected_learning_rate_per_update = np.array(self.logger.get_variable_history(1)).flatten()
-        assert_array_equal(np.r_[learning_rate_per_update_part1, learning_rate_per_update_part2],
-                           expected_learning_rate_per_update)
-
-        # Check that concatenating `logger1` with `logger2` is the same as `self.logger`.
-        learning_rate_per_update_part1 = np.array(logger1.get_variable_history(2)).flatten()
-        learning_rate_per_update_part2 = np.array(logger2.get_variable_history(2)).flatten()
-        expected_learning_rate_per_update = np.array(self.logger.get_variable_history(2)).flatten()
-        assert_array_almost_equal(np.r_[learning_rate_per_update_part1, learning_rate_per_update_part2],
-                                  expected_learning_rate_per_update)
+        for i in range(3):
+            # Check that `logger2` is the same as `self.logger` for all logged variables.
+            learning_rate_per_update2 = np.array(logger2.get_variable_history(i)).flatten()
+            expected_learning_rate_per_update = np.array(self.logger.get_variable_history(i)).flatten()
+            assert_array_equal(learning_rate_per_update2, expected_learning_rate_per_update)

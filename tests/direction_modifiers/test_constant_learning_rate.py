@@ -4,7 +4,7 @@ import theano.tensor as T
 import unittest
 import tempfile
 
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from smartlearner import views, stopping_criteria, Trainer, tasks
 from smartlearner.direction_modifiers import ConstantLearningRate
@@ -61,7 +61,8 @@ class TestConstantLearningRate(unittest.TestCase):
     def test_behaviour(self):
         learning_rate_per_update = np.array(self.logger.get_variable_history(0))[:, :, 0].flatten()
         expected_learning_rate_per_update = [self.lr for _ in range(self.max_epoch)]
-        assert_array_equal(learning_rate_per_update, expected_learning_rate_per_update)
+        # Using `assert_array_*almost*_equal` because of float32. However, this is not needed in float64.
+        assert_array_almost_equal(learning_rate_per_update, expected_learning_rate_per_update)
 
     def test_save_load(self):
         # Save training and resume it.
@@ -94,9 +95,7 @@ class TestConstantLearningRate(unittest.TestCase):
             trainer2.load(experiment_dir)
             trainer2.train()
 
-        # Check that concatenating `logger1` with `logger2` is the same as `self.logger`.
-        learning_rate_per_update_part1 = np.array(logger1.get_variable_history(0))[:, :, 0].flatten()
+        # Check that `logger2` is the same as `self.logger` for all logged variables.
         learning_rate_per_update_part2 = np.array(logger2.get_variable_history(0))[:, :, 0].flatten()
         expected_learning_rate_per_update = np.array(self.logger.get_variable_history(0))[:, :, 0].flatten()
-        assert_array_equal(np.r_[learning_rate_per_update_part1, learning_rate_per_update_part2],
-                           expected_learning_rate_per_update)
+        assert_array_equal(learning_rate_per_update_part2, expected_learning_rate_per_update)

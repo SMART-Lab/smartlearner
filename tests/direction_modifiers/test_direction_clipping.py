@@ -3,7 +3,7 @@ import theano
 import theano.tensor as T
 import unittest
 
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true
 
 from smartlearner import views, stopping_criteria, Trainer, tasks
@@ -77,5 +77,5 @@ class TestDirectionClipping(unittest.TestCase):
 
             gradients = np.array(logger.get_variable_history(2)).squeeze()
             norms = np.array(logger.get_variable_history(3)).squeeze()[:, None]
-            assert_array_equal(gradients_clipped,
-                               gradients*threshold/np.maximum(threshold, norms))
+            assert_array_almost_equal(gradients_clipped,
+                                      gradients*threshold/np.maximum(threshold, norms))
