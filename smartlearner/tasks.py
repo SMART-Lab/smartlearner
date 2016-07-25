@@ -18,6 +18,17 @@ class PrintEpochDuration(RecurrentTask):
         self.epoch_start_time = time()
 
 
+class PrintTime(RecurrentTask):
+    def __init__(self, **recurrent_options):
+        # TODO: docstring should include **recurrent_options.
+        super().__init__(**recurrent_options)
+        self.start_time = time()
+
+    def execute(self, status):
+        print("Time {0}-{1}: {2:.03f} sec.".format(status.current_epoch, status.current_update_in_epoch, time() - self.start_time))
+        self.start_time = time()
+
+
 class PrintTrainingDuration(Task):
     def init(self, status):
         self.start_time = time()
