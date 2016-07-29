@@ -83,7 +83,7 @@ class EarlyStopping(Task):
 
     def _stash_model(self, status):
         model = status.trainer._optimizer.loss.model
-        self.stash = [p.get_value() for p in model.parameters]
+        self.stash = [p.get_value().copy() for p in model.parameters]
 
     def _restore_model(self, status):
         model = status.trainer._optimizer.loss.model
